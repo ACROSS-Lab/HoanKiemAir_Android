@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name" translatable="false">HoanKiemAir Controller</string>
+
+    <string name="ip_text_hint">Host IP address</string>
+    <string name="button_connect">Connect</string>
+
+    <string name="label_category_simulation_params">Simulation parameters</string>
+    <string name="label_category_display">Display</string>
+
+    <string name="label_num_cars">Number of cars</string>
+    <string name="label_num_motorbikes">Number of motorbikes</string>
+    <string name="label_close_roads">Road management</string>
+
+    <string name="label_display_mode">Display mode</string>
+    <string name="radio_button_traffic">Traffic</string>
+    <string name="radio_button_pollution">Pollution</string>
+    <string name="radio_button_no_close_roads">No closed roads</string>
+    <string name="radio_button_scenario_1">Pedestrian zone active</string>
+    <string name="radio_button_scenario_2">Extension plan</string>
+    <string name="language_setting">Language</string>
+    <string name="toast_blank_ip">Fill in the IP address</string>
+    <string name="toast_connection_established">Connection established</string>
+    <string name="toast_connection_failed">Connection failed</string>
+    <string name="ok" translatable="false">OK</string>
+    <string name="cancel" translatable="false">Cancel</string>
+    <string name="reset_params_prompt" translatable="false">Do you want to reset all parameters to default?</string>
+</resources>
