@@ -17,7 +17,6 @@ import android.widget.Toast;
 import com.example.hoankiemaircontrol.R;
 //import com.example.hoankiemaircontrol.network.MQTTConnector;
 import com.example.hoankiemaircontrol.network.NewTCP;
-import com.example.hoankiemaircontrol.network.TCPConnector;
 
 //import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 //import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -31,7 +30,6 @@ import br.com.simplepass.loadingbutton.customViews.CircularProgressButton;
 public class ConnectActivity extends BaseActivity {
     private EditText mEditTextIpAddress;
     private CircularProgressButton mConnectButton;
-    TCPConnector mt;
     NewTCP newTCP;
 
 
@@ -86,10 +84,9 @@ public class ConnectActivity extends BaseActivity {
         Thread thread = new Thread(){
             @Override
             public void run() {
-                newTCP = new NewTCP();
+                newTCP = new NewTCP(ConnectActivity.this);
                 newTCP.setIP(serverIp);
                 newTCP.run();
-                newTCP.sendMess("Hello Server !!!");
                 Intent i = new Intent(ConnectActivity.this, MainActivity.class);
                 startActivity(i);
             }

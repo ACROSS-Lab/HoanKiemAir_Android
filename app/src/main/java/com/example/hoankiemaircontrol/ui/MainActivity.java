@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.example.hoankiemaircontrol.R;
 import com.example.hoankiemaircontrol.network.MQTTConnector;
+import com.example.hoankiemaircontrol.network.NewTCP;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 
@@ -60,7 +61,7 @@ public class MainActivity extends BaseActivity {
         mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
             public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                MQTTConnector.getInstance(MainActivity.this).sendMessage("n_cars", value);
+                NewTCP.getInstance(MainActivity.this).sendMess("n_cars", value);
             }
 
             @Override
@@ -80,7 +81,7 @@ public class MainActivity extends BaseActivity {
         mSeekBarNumMotorbikes.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
             public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                MQTTConnector.getInstance(MainActivity.this).sendMessage("n_motorbikes", value);
+                NewTCP.getInstance(MainActivity.this).sendMess("n_motorbikes", value);
             }
 
             @Override
@@ -108,15 +109,15 @@ public class MainActivity extends BaseActivity {
         switch(v.getId()) {
             case R.id.radio_button_scenario_0:
                 if (checked)
-                    MQTTConnector.getInstance(MainActivity.this).sendMessage("road_scenario", 0);
+                    NewTCP.getInstance(MainActivity.this).sendMess("road_scenario", 0);
                 break;
             case R.id.radio_button_scenario_1:
                 if (checked)
-                    MQTTConnector.getInstance(MainActivity.this).sendMessage("road_scenario", 1);
+                    NewTCP.getInstance(MainActivity.this).sendMess("road_scenario", 1);
                 break;
             case R.id.radio_button_scenario_2:
                 if (checked)
-                    MQTTConnector.getInstance(MainActivity.this).sendMessage("road_scenario", 2);
+                    NewTCP.getInstance(MainActivity.this).sendMess("road_scenario", 2);
                 break;
         }
     }
@@ -128,11 +129,11 @@ public class MainActivity extends BaseActivity {
         switch(v.getId()) {
             case R.id.radio_button_traffic:
                 if (checked)
-                    MQTTConnector.getInstance(MainActivity.this).sendMessage("display_mode", DISPLAY_MODE_TRAFFIC);
+                    NewTCP.getInstance(MainActivity.this).sendMess("display_mode", DISPLAY_MODE_TRAFFIC);
                 break;
             case R.id.radio_button_pollution:
                 if (checked)
-                    MQTTConnector.getInstance(MainActivity.this).sendMessage("display_mode", DISPLAY_MODE_POLLUTION);
+                    NewTCP.getInstance(MainActivity.this).sendMess("display_mode", DISPLAY_MODE_POLLUTION);
                 break;
         }
     }
