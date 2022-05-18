@@ -24,4 +24,5 @@
     <string name="ok" translatable="false">OK</string>
     <string name="cancel" translatable="false">Cancel</string>
     <string name="reset_params_prompt" translatable="false">Do you want to reset all parameters to default?</string>
+    <string name="name_of_splash" translatable="false">Hoan Kiem Air Controller</string>
 </resources>
