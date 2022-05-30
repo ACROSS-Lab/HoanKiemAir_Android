@@ -9,59 +9,36 @@ import android.view.View;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+
 import com.example.hoankiemaircontrol.R;
-import com.example.hoankiemaircontrol.network.MQTTConnector;
-import com.example.hoankiemaircontrol.network.NewTCP;
+import com.example.hoankiemaircontrol.network.TCP;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
-
 import info.hoang8f.android.segmented.SegmentedGroup;
 
 public class MainActivity extends BaseActivity {
-    private static final int N_CARS_MIN = 0;
-    private static final int N_CARS_MAX = 500;
-    private static final int N_MOTORBIKES_MIN = 0;
-    private static final int N_MOTORBIKES_MAX = 1000;
 
     private static final int DISPLAY_MODE_TRAFFIC = 0;
     private static final int DISPLAY_MODE_POLLUTION = 1;
 
-    private TextView mTextNumCarsMin;
-    private TextView mTextNumCarsMax;
-    private TextView mTextNumMotorbikesMin;
-    private TextView mTextNumMotorbikesMax;
+
 
     private DiscreteSeekBar mSeekBarNumCars;
     private DiscreteSeekBar mSeekBarNumMotorbikes;
     private SegmentedGroup mRadioGroupRoadScenario;
     private SegmentedGroup mRadioGroupDisplayMode;
 
-    private MQTTConnector mConnector;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTextNumCarsMin = findViewById(R.id.text_num_cars_min);
-        mTextNumCarsMax = findViewById(R.id.text_num_cars_max);
-        mTextNumMotorbikesMin = findViewById(R.id.text_num_motorbikes_min);
-        mTextNumMotorbikesMax = findViewById(R.id.text_num_motorbikes_max);
 
-
-        mTextNumCarsMin.setText(Integer.toString(N_CARS_MIN));
-        mTextNumCarsMax.setText("MAX");
-        mTextNumMotorbikesMin.setText(Integer.toString(N_MOTORBIKES_MIN));
-        mTextNumMotorbikesMax.setText("MAX");
-
-
-        mSeekBarNumCars = findViewById(R.id.seek_bar_num_people);
-        mSeekBarNumCars.setMin(N_CARS_MIN);
-        mSeekBarNumCars.setMax(N_CARS_MAX);
+        mSeekBarNumCars = findViewById(R.id.seekBar_for_cars);
         mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
             public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                NewTCP.getInstance(MainActivity.this).sendMess("n_cars", value);
+                TCP.getInstance(MainActivity.this).SendMessageTask("n_cars", value);
             }
 
             @Override
@@ -75,13 +52,11 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        mSeekBarNumMotorbikes = findViewById(R.id.seek_bar_vehicle_ratio);
-        mSeekBarNumMotorbikes.setMin(N_MOTORBIKES_MIN);
-        mSeekBarNumMotorbikes.setMax(N_MOTORBIKES_MAX);
+        mSeekBarNumMotorbikes = findViewById(R.id.seekBar_for_motobikes);
         mSeekBarNumMotorbikes.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
             public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                NewTCP.getInstance(MainActivity.this).sendMess("n_motorbikes", value);
+                TCP.getInstance(MainActivity.this).SendMessageTask("n_motorbikes", value);
             }
 
             @Override
@@ -97,6 +72,9 @@ public class MainActivity extends BaseActivity {
 
         mRadioGroupRoadScenario = findViewById(R.id.radio_group_road_scenario);
         mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
+
+        TextView statistic = findViewById(R.id.statistic);
+        statistic.setText(TCP.getInstance(MainActivity.this).Receive());
     }
 
     public void onRoadScenarioRadioButtonClicked(View v) {
@@ -104,20 +82,18 @@ public class MainActivity extends BaseActivity {
 
         // Check which radio button was clicked
 
-        //TODO: This switch need to change too in step
-
         switch(v.getId()) {
             case R.id.radio_button_scenario_0:
                 if (checked)
-                    NewTCP.getInstance(MainActivity.this).sendMess("road_scenario", 0);
+                    TCP.getInstance(MainActivity.this).SendMessageTask("road_scenario", 0);
                 break;
             case R.id.radio_button_scenario_1:
                 if (checked)
-                    NewTCP.getInstance(MainActivity.this).sendMess("road_scenario", 1);
+                    TCP.getInstance(MainActivity.this).SendMessageTask("road_scenario", 1);
                 break;
             case R.id.radio_button_scenario_2:
                 if (checked)
-                    NewTCP.getInstance(MainActivity.this).sendMess("road_scenario", 2);
+                    TCP.getInstance(MainActivity.this).SendMessageTask("road_scenario", 2);
                 break;
         }
     }
@@ -129,11 +105,11 @@ public class MainActivity extends BaseActivity {
         switch(v.getId()) {
             case R.id.radio_button_traffic:
                 if (checked)
-                    NewTCP.getInstance(MainActivity.this).sendMess("display_mode", DISPLAY_MODE_TRAFFIC);
+                    TCP.getInstance(MainActivity.this).SendMessageTask("display_mode", DISPLAY_MODE_TRAFFIC);
                 break;
             case R.id.radio_button_pollution:
                 if (checked)
-                    NewTCP.getInstance(MainActivity.this).sendMess("display_mode", DISPLAY_MODE_POLLUTION);
+                    TCP.getInstance(MainActivity.this).SendMessageTask("display_mode", DISPLAY_MODE_POLLUTION);
                 break;
         }
     }
@@ -172,12 +148,11 @@ public class MainActivity extends BaseActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
-
     //TODO: This one need to change in last step
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        MQTTConnector.getInstance(this).disconnect();
+//        TCP.getInstance(this).Disconnect();
     }
 }

@@ -2,50 +2,29 @@ package com.example.hoankiemaircontrol.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-////import android.util.Log;
-////import android.view.KeyEvent;
-//import android.os.Handler;
-//import android.os.Message;
 import android.os.StrictMode;
 import android.view.KeyEvent;
 import android.view.Menu;
-//import android.view.View;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.hoankiemaircontrol.R;
-//import com.example.hoankiemaircontrol.network.MQTTConnector;
-import com.example.hoankiemaircontrol.network.NewTCP;
-
-//import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-//import org.eclipse.paho.client.mqttv3.IMqttToken;
-
-
-
-
+import com.example.hoankiemaircontrol.network.TCP;
 
 import br.com.simplepass.loadingbutton.customViews.CircularProgressButton;
+
 
 public class ConnectActivity extends BaseActivity {
     private EditText mEditTextIpAddress;
     private CircularProgressButton mConnectButton;
-    NewTCP newTCP;
+    TCP _TCP;
 
-
-//    public Handler mHandler = new Handler() {
-//        public void handleMessage(Message msg) {
-//            //Print messages from the server
-//            System.out.println("read:"+msg.obj.toString());
-//        };
-//    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connect);
-
-
 
         mEditTextIpAddress = findViewById(R.id.edit_text_ip_address);
         mEditTextIpAddress.setOnKeyListener((v, keyCode, event) -> {
@@ -84,12 +63,14 @@ public class ConnectActivity extends BaseActivity {
         Thread thread = new Thread(){
             @Override
             public void run() {
-                newTCP = new NewTCP(ConnectActivity.this);
-                newTCP.setIP(serverIp);
-                newTCP.run();
+                _TCP = new TCP(ConnectActivity.this);
+                _TCP.setIP(serverIp);
+                _TCP.createConnection();
+
                 Intent i = new Intent(ConnectActivity.this, MainActivity.class);
                 startActivity(i);
             }
+
         };
 
         if (serverIp.length() == 0) {

@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/HoanKiemAir.HoanKiemAirControl.iml" filepath="$PROJECT_DIR$/.idea/modules/HoanKiemAir.HoanKiemAirControl.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/HoanKiemAirControl.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/HoanKiemAirControl.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/DEMO_HoanKiemAir_application.iml" filepath="$PROJECT_DIR$/.idea/modules/DEMO_HoanKiemAir_application.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/DEMO_HoanKiemAir_application.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/DEMO_HoanKiemAir_application.app.iml" />
     </modules>
   </component>
 </project>
