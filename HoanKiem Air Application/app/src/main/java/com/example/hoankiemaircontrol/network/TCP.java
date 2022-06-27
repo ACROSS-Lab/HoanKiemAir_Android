@@ -70,11 +70,18 @@ public class TCP {
 
 
     public int SendMessageTask(String mess, int data) {
-            var mess1 = new Message(mess, data);
-            var str_mess = mess1.toString() + "\n\r\n";
-            pt.write(str_mess);
-            pt.flush();
-            return data;
+           if(socket.isConnected()){
+               try {
+                   pt = new PrintWriter(socket.getOutputStream());
+                   var mess1 = new Message(mess,data);
+                   var str_mess = mess1.toString() + "\n\r\n";
+                   pt.write(str_mess);
+                   pt.flush();
+               } catch (IOException e) {
+                   e.printStackTrace();
+               }
+           }
+           return data;
     }
 
 

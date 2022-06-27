@@ -16,9 +16,6 @@
         android:theme="@style/AppTheme"
         tools:ignore="ExtraText">
         <activity
-            android:name=".ui.Reconnect_Activity"
-            android:exported="false" />
-        <activity
             android:name=".ui.SplashActivity"
             android:exported="true">
             <intent-filter>
