@@ -54,8 +54,8 @@ global {
 	float day_time_color_blend_factor <- 0.2;
 	
 	// Daytime traffic demand
-	int max_number_of_cars <- 500 const:true;
-	int max_number_of_motorbikes <- 1000 const:true;
+	int max_number_of_cars <- 2000 const:true;
+	int max_number_of_motorbikes <- 2000 const:true;
 	bool day_time_traffic <- false;
 	map<date,float> daytime_trafic_peak <- [
 		date("01 00 00", "HH mm ss")::0.1,

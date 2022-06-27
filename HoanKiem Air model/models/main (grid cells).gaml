@@ -128,6 +128,18 @@ global skills:[network] {
 					road_scenario <- val;
 				}if fct = 'display_mode'{
 					display_mode <- val;
+				}if fct = 'day_time_traffic'{
+					if(val = 1){
+						day_time_traffic <- true;
+						refreshing_rate_plot <- 1#h;
+						starting_date_string <- "05 00 00";
+						step <- 5#mn;
+					}else{
+						day_time_traffic <- false;
+						refreshing_rate_plot <- 1#mn;
+						starting_date_string <- "00 00 00";
+						step <- 16#s;
+					}
 				}
 			}
 			
@@ -145,7 +157,7 @@ global skills:[network] {
 		ask line_graph_aqi {
 			h <- val_list;
 		}
-		write "sending: " + h;
+		write "sending : " + h + " to: " + client;
 		ask world{
 			do send to: client contents: h;
 		}
@@ -176,7 +188,6 @@ global skills:[network] {
 		float t_rate <- general_traffic_daytime();
 		n_cars <- int(max_number_of_cars * t_rate);
 		n_motorbikes <- int(max_number_of_motorbikes * t_rate);
-		do send_stats;
 	}
 	
 	reflex update_car_population when: n_cars != n_cars_prev {
@@ -401,11 +412,11 @@ global skills:[network] {
 }
 
 experiment exp autorun: true {
-	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 500;
-	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 1000;
-	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2;
-	parameter "Display mode" var: display_mode <- 0 min: 0 max: 1;
-	parameter "Refreshing time plot" var: refreshing_rate_plot init: 2#mn min:1#mn max: 1#h;
+//	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 500;
+//	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 1000;
+//	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2;
+//	parameter "Display mode" var: display_mode <- 0 min: 0 max: 1;
+//	parameter "Refreshing time plot" var: refreshing_rate_plot init: 2#mn min:1#mn max: 1#h;
 	
 	output {
 		display main type: opengl fullscreen: false toolbar: false background: day_time_color 
@@ -435,11 +446,11 @@ camera_location: {983.1376,1519.9429,3978.7622} camera_target: {983.1376,1519.87
 	
 }
 
-experiment daytime parent:exp autorun:true {
-	parameter "Daytime traffic" var:day_time_traffic init:true;
-	parameter "Time step" var:step init:5#mn min:1#mn max:30#mn;
-	parameter "Refreshing time plot" var: refreshing_rate_plot init: 1#h min:1#mn max: 1#h;
-	parameter "Starting time" var:starting_date_string init:"05 00 00";
-	parameter "Display mode" var: display_mode <- 0 min: 0 max: 1;
-	
-}
+//experiment daytime parent:exp autorun:true {
+//	parameter "Daytime traffic" var:day_time_traffic init:true;
+//	parameter "Time step" var:step init:5#mn min:1#mn max:30#mn;
+//	parameter "Refreshing time plot" var: refreshing_rate_plot init: 1#h min:1#mn max: 1#h;
+//	parameter "Starting time" var:starting_date_string init:"05 00 00";
+//	parameter "Display mode" var: display_mode <- 0 min: 0 max: 1;
+//	
+//}

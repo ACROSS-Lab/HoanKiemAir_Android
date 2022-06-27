@@ -1,13 +1,14 @@
 package com.example.hoankiemaircontrol.network;
 
+import android.app.Activity;
 import android.content.Context;
+
+import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.util.Log;
+
+import com.example.hoankiemaircontrol.ui.ConnectActivity;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 import java.io.InputStreamReader;
@@ -16,11 +17,13 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class TCP {
-    String ip;
+    private String ip;
     static Socket socket;
     private Context sContext;
-    private static TCP TCP;
+    private static TCP _TCP;
 
+
+    private static ReceiveMessage _instance;
 
 
     private static InputStreamReader inputStreamReader;
@@ -32,14 +35,22 @@ public class TCP {
     }
 
     public static TCP getInstance(Context context) {
-        if (TCP == null) {
-            TCP = new TCP(context);
+        if (_TCP == null) {
+            _TCP = new TCP(context);
         }
-        return TCP;
+        return _TCP;
+    }
+
+    public Socket getSocket() {
+        return this.socket;
     }
 
     public void setIP(String ip) {
         this.ip = ip;
+    }
+
+    public static void set_instance(ReceiveMessage _instance) {
+        TCP._instance = _instance;
     }
 
     public void createConnection() {
@@ -58,24 +69,19 @@ public class TCP {
     }
 
 
-    public void SendMessageTask(String mess, Object data){
-        try {
-            pt = new PrintWriter(socket.getOutputStream());
-            var mess1 = new Message(mess,data);
+    public int SendMessageTask(String mess, int data) {
+            var mess1 = new Message(mess, data);
             var str_mess = mess1.toString() + "\n\r\n";
             pt.write(str_mess);
             pt.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            return data;
     }
 
 
-    private static class ReceiveMessage extends AsyncTask<Void, Void, String> {
+
+    private static class ReceiveMessage extends AsyncTask<Void, Void, Void>  {
         private String mess;
         private IMessageListener listener;
-
-        private static ReceiveMessage _instance;
 
         public static ReceiveMessage getInstance() {
             if (_instance==null) {
@@ -90,22 +96,21 @@ public class TCP {
         }
 
         @Override
-        protected String doInBackground(Void... voids) {
-
+        protected Void doInBackground(Void... voids){
             do {
                 try {
                     inputStreamReader = new InputStreamReader(socket.getInputStream());
                     bufferedReader = new BufferedReader(inputStreamReader);
                     mess = bufferedReader.readLine();
-                    //TODO: query the message
                     listener.messageReceived(mess);
                 } catch(IOException e){
                     e.printStackTrace();
                 }
-            }while(true);
+            }while(socket.isConnected());
 
+            return null;
         }
-    }
+}
 
 
 
