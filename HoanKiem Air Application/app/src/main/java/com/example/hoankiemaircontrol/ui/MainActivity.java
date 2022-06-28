@@ -1,38 +1,27 @@
 package com.example.hoankiemaircontrol.ui;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioButton;
-import android.widget.TextView;
-
-
-import androidx.annotation.NonNull;
 
 import com.example.hoankiemaircontrol.R;
-import com.example.hoankiemaircontrol.network.IMessageListener;
 import com.example.hoankiemaircontrol.network.TCP;
+import com.example.hoankiemaircontrol.network.support.IMessageListener;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 
-import java.io.File;
-import java.io.IOException;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
@@ -46,7 +35,6 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     private static  int EXTENSION_PLAN = 2;
 
 
-
     private DiscreteSeekBar mSeekBarNumCars;
     private DiscreteSeekBar mSeekBarNumMotorbikes;
     private SegmentedGroup mRadioGroupRoadScenario;
@@ -54,28 +42,28 @@ public class MainActivity extends BaseActivity implements IMessageListener{
 
     private int num_cars;
     private int num_motorbikes;
-    private int display_mode_1;
-    private int display_mode_2;
-    private int road_management_1;
-    private int road_management_2;
-    private int road_management_3;
-    private boolean wasRunning = true;
+    private static String[] mess2;
 
-
-    private TextView statistics;
 
     LineChart lineChart;
     LineData lineData;
     LineDataSet lineDataSet;
     static ArrayList<Entry> lineEntries = new ArrayList<>();
 
-    private static String[] mess2;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Catch UI
+        mSeekBarNumCars = findViewById(R.id.seekBar_for_cars);
+        mSeekBarNumMotorbikes = findViewById(R.id.seekBar_for_motobikes);
+        mRadioGroupRoadScenario = findViewById(R.id.radio_group_road_scenario);
+        mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
+
+        // Handle uncaught exception
         Thread.setDefaultUncaughtExceptionHandler(
                 new Thread.UncaughtExceptionHandler() {
                     @Override
@@ -86,7 +74,9 @@ public class MainActivity extends BaseActivity implements IMessageListener{
                         startActivity(intent);
                     }
                 });
-//         Save status when app stop
+
+
+        //Save status when app stop
         if(savedInstanceState != null){
             num_cars = savedInstanceState.getInt("num_cars");
             num_motorbikes = savedInstanceState.getInt("num_motorbikes");
@@ -95,59 +85,18 @@ public class MainActivity extends BaseActivity implements IMessageListener{
             NO_CLOSE_ROADS = savedInstanceState.getInt("NO_CLOSE_ROADS");
             PEDESTRIAN_ZONE_ACTIVE = savedInstanceState.getInt("PEDESTRIAN_ZONE_ACTIVE");
             EXTENSION_PLAN = savedInstanceState.getInt("EXTENSION_PLAN");
-            wasRunning = savedInstanceState.getBoolean("wasRunning");
         }
 
-        // Slidebar to send number of cars
-        mSeekBarNumCars = findViewById(R.id.seekBar_for_cars);
-        mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
-            @Override
-            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-               int num_cars = TCP.getInstance(MainActivity.this).SendMessageTask("n_cars", value);
-            }
-
-            @Override
-            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
-
-            }
-        });
-
-        // Slidebar to send number of motorbikes
-        mSeekBarNumMotorbikes = findViewById(R.id.seekBar_for_motobikes);
-        mSeekBarNumMotorbikes.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
-            @Override
-            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-              int num_motorbikes =  TCP.getInstance(MainActivity.this).SendMessageTask("n_motorbikes", value);
-            }
-
-            @Override
-            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
-
-            }
-        });
-
-        mRadioGroupRoadScenario = findViewById(R.id.radio_group_road_scenario);
-        mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
-
-
+        ChangeNumberOfCar();
+        ChangeNumberOfMotor();
         TCP.getInstance(MainActivity.this).subscribe(this);
 
     }
 
+
     // Save status when app stop
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-
         savedInstanceState.putInt("num_cars", num_cars);
         savedInstanceState.putInt("num_motorbikes", num_motorbikes);
         savedInstanceState.putInt("DISPLAY_MODE_TRAFFIC", 0);
@@ -155,7 +104,6 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         savedInstanceState.putInt("NO_CLOSE_ROADS", 0);
         savedInstanceState.putInt("PEDESTRIAN_ZONE_ACTIVE", 1);
         savedInstanceState.putInt("EXTENSION_PLAN", 2);
-        savedInstanceState.putBoolean("wasRunning", wasRunning);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -176,11 +124,12 @@ public class MainActivity extends BaseActivity implements IMessageListener{
             lineDataSet.setColors(ColorTemplate.MATERIAL_COLORS);
             lineDataSet.setValueTextColor(Color.BLACK);
             lineDataSet.setValueTextSize(10f);
+
         }else throw new NullPointerException();
     }
 
 
-    public void getEntries(){
+    private void getEntries(){
         lineEntries.clear();
         for(int i=0; i<mess2.length; i++){
             lineEntries.add(new Entry(i, Float.parseFloat(mess2[i])));
@@ -188,10 +137,47 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     }
 
 
+    public void ChangeNumberOfCar(){
+        mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
+            @Override
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                int num_cars = TCP.getInstance(MainActivity.this).SendMessageTask("n_cars", value);
+            }
+
+            @Override
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+        });
+    }
+
+    public void ChangeNumberOfMotor(){
+        mSeekBarNumMotorbikes.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
+            @Override
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                int num_motorbikes =  TCP.getInstance(MainActivity.this).SendMessageTask("n_motorbikes", value);
+            }
+
+            @Override
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+        });
+    }
+
     // Button change status of road
     public void onRoadScenarioRadioButtonClicked(View v) {
         boolean checked = ((RadioButton) v).isChecked();
-
         // Check which radio button was clicked
         switch(v.getId()) {
             case R.id.radio_button_scenario_0:
@@ -287,19 +273,15 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     }
 
 
-
-
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-
+    protected void onResume() {
+        super.onResume();
+        try {
+            TCP.getInstance(MainActivity.this).getSocket().setKeepAlive(true);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-
+    
 }

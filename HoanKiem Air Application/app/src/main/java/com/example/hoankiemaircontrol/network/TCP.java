@@ -1,12 +1,11 @@
 package com.example.hoankiemaircontrol.network;
 
-import android.app.Activity;
 import android.content.Context;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 
-import com.example.hoankiemaircontrol.ui.ConnectActivity;
+import com.example.hoankiemaircontrol.network.support.IMessageListener;
+import com.example.hoankiemaircontrol.network.support.Message;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,8 +18,8 @@ import java.net.Socket;
 public class TCP {
     private String ip;
     static Socket socket;
-    private Context sContext;
-    private static TCP _TCP;
+    private Context Present_context;
+    private static TCP TCP_instance;
 
 
     private static ReceiveMessage _instance;
@@ -31,14 +30,14 @@ public class TCP {
     private static PrintWriter pt;
 
     public TCP(Context context) {
-        sContext = context;
+        Present_context = context;
     }
 
     public static TCP getInstance(Context context) {
-        if (_TCP == null) {
-            _TCP = new TCP(context);
+        if (TCP_instance == null) {
+            TCP_instance = new TCP(context);
         }
-        return _TCP;
+        return TCP_instance;
     }
 
     public Socket getSocket() {
