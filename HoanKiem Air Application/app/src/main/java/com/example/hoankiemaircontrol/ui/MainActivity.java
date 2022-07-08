@@ -1,7 +1,6 @@
 package com.example.hoankiemaircontrol.ui;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -20,8 +19,6 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
-
-import java.net.SocketException;
 import java.util.ArrayList;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
@@ -49,13 +46,14 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     LineData lineData;
     LineDataSet lineDataSet;
     static ArrayList<Entry> lineEntries = new ArrayList<>();
-
+    private static String ip;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ip = getIntent().getStringExtra("ip");
 
         // Catch UI
         mSeekBarNumCars = findViewById(R.id.seekBar_for_cars);
@@ -65,14 +63,12 @@ public class MainActivity extends BaseActivity implements IMessageListener{
 
         // Handle uncaught exception
         Thread.setDefaultUncaughtExceptionHandler(
-                new Thread.UncaughtExceptionHandler() {
-                    @Override
-                    public void uncaughtException(Thread thread, Throwable e) {
-                        TCP.set_instance(null);
-                        Intent intent = new Intent (getApplicationContext(), ConnectActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                    }
+                (thread, e) -> {
+                    TCP.set_instance(null);
+                    Intent intent = new Intent (getApplicationContext(), ReconnectActivity.class);
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("ip", ip);
+                    startActivity(intent);
                 });
 
 
@@ -93,6 +89,10 @@ public class MainActivity extends BaseActivity implements IMessageListener{
 
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
 
     // Save status when app stop
     @Override
@@ -114,22 +114,23 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     public void messageReceived(String mess) {
         if (mess != null) {
             mess2 = mess.replace("[", "").replace("]", "").split(",");
-            lineChart = findViewById(R.id.LineChart);
-            getEntries();
-            lineChart.notifyDataSetChanged();
-            lineChart.invalidate();
-            lineDataSet = new LineDataSet(lineEntries, "The rate change of pollution");
-            lineData = new LineData(lineDataSet);
-            lineChart.setData(lineData);
-            lineDataSet.setColors(ColorTemplate.MATERIAL_COLORS);
-            lineDataSet.setValueTextColor(Color.BLACK);
-            lineDataSet.setValueTextSize(10f);
 
         }else throw new NullPointerException();
+
+        lineChart = findViewById(R.id.LineChart);
+        getEntries();
+        lineChart.notifyDataSetChanged();
+        lineChart.invalidate();
+        lineDataSet = new LineDataSet(lineEntries, "The rate change of pollution");
+        lineData = new LineData(lineDataSet);
+        lineChart.setData(lineData);
+        lineDataSet.setColors(ColorTemplate.MATERIAL_COLORS);
+        lineDataSet.setValueTextColor(Color.BLACK);
+        lineDataSet.setValueTextSize(10f);
     }
 
 
-    private void getEntries(){
+    private void getEntries() {
         lineEntries.clear();
         for(int i=0; i<mess2.length; i++){
             lineEntries.add(new Entry(i, Float.parseFloat(mess2[i])));
@@ -141,7 +142,7 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
             public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                int num_cars = TCP.getInstance(MainActivity.this).SendMessageTask("n_cars", value);
+                 TCP.getInstance(MainActivity.this).SendMessageTask("n_cars", value);
             }
 
             @Override
@@ -160,7 +161,7 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         mSeekBarNumMotorbikes.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
             public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                int num_motorbikes =  TCP.getInstance(MainActivity.this).SendMessageTask("n_motorbikes", value);
+                TCP.getInstance(MainActivity.this).SendMessageTask("n_motorbikes", value);
             }
 
             @Override
@@ -245,20 +246,16 @@ public class MainActivity extends BaseActivity implements IMessageListener{
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setMessage(R.string.reset_params_prompt);
                 // Add the buttons
-                builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mSeekBarNumCars.setProgress(0);
-                        mSeekBarNumMotorbikes.setProgress(0);
-                        mRadioGroupRoadScenario.check(R.id.radio_button_scenario_0);
-                        mRadioGroupDisplayMode.check(R.id.radio_button_traffic);
-                        onRoadScenarioRadioButtonClicked(findViewById(R.id.radio_button_scenario_0));
-                        onDisplayModeRadioButtonClicked(findViewById(R.id.radio_button_traffic));
-                    }
+                builder.setPositiveButton(R.string.ok, (dialog, id) -> {
+                    mSeekBarNumCars.setProgress(0);
+                    mSeekBarNumMotorbikes.setProgress(0);
+                    mRadioGroupRoadScenario.check(R.id.radio_button_scenario_0);
+                    mRadioGroupDisplayMode.check(R.id.radio_button_traffic);
+                    onRoadScenarioRadioButtonClicked(findViewById(R.id.radio_button_scenario_0));
+                    onDisplayModeRadioButtonClicked(findViewById(R.id.radio_button_traffic));
                 });
-                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User cancelled the dialog
-                    }
+                builder.setNegativeButton(R.string.cancel, (dialog, id) -> {
+                    // User cancelled the dialog
                 });
                 // Create the AlertDialog
                 AlertDialog dialog = builder.create();
@@ -273,15 +270,5 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     }
 
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        try {
-            TCP.getInstance(MainActivity.this).getSocket().setKeepAlive(true);
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-    }
 
-    
 }

@@ -1,32 +1,29 @@
 package com.example.hoankiemaircontrol.network;
 
 import android.content.Context;
-
 import android.os.AsyncTask;
+
 
 import com.example.hoankiemaircontrol.network.support.IMessageListener;
 import com.example.hoankiemaircontrol.network.support.Message;
+
 
 import java.io.BufferedReader;
 import java.io.IOException;
 
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-
 import java.net.Socket;
+
 
 public class TCP {
     private String ip;
     static Socket socket;
-    private Context Present_context;
+    private final Context Present_context;
     private static TCP TCP_instance;
 
 
     private static ReceiveMessage _instance;
-
-
-    private static InputStreamReader inputStreamReader;
-    private static BufferedReader bufferedReader;
     private static PrintWriter pt;
 
     public TCP(Context context) {
@@ -38,10 +35,6 @@ public class TCP {
             TCP_instance = new TCP(context);
         }
         return TCP_instance;
-    }
-
-    public Socket getSocket() {
-        return this.socket;
     }
 
     public void setIP(String ip) {
@@ -60,6 +53,7 @@ public class TCP {
             pt.flush();
         } catch (IOException e) {
             e.printStackTrace();
+
         }
     }
 
@@ -86,8 +80,15 @@ public class TCP {
 
 
     private static class ReceiveMessage extends AsyncTask<Void, Void, Void>  {
-        private String mess;
         private IMessageListener listener;
+        private String mess;
+
+
+
+        public void subscribe(IMessageListener listener) {
+            this.listener = listener;
+        }
+        
 
         public static ReceiveMessage getInstance() {
             if (_instance==null) {
@@ -97,16 +98,12 @@ public class TCP {
             return _instance;
         }
 
-        public void subscribe(IMessageListener listener) {
-            this.listener = listener;
-        }
-
         @Override
         protected Void doInBackground(Void... voids){
             do {
                 try {
-                    inputStreamReader = new InputStreamReader(socket.getInputStream());
-                    bufferedReader = new BufferedReader(inputStreamReader);
+                    InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
+                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                     mess = bufferedReader.readLine();
                     listener.messageReceived(mess);
                 } catch(IOException e){
@@ -116,7 +113,8 @@ public class TCP {
 
             return null;
         }
-}
+    }
+
 
 
 

@@ -52,4 +52,6 @@ dependencies {
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
+
+
 }
