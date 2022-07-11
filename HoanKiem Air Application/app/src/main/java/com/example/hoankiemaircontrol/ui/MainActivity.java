@@ -88,11 +88,6 @@ public class MainActivity extends BaseActivity implements IMessageListener{
 
     }
 
-    @Override
-    public void onBackPressed() {
-        finish();
-    }
-
     // Save status when app stop
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -273,6 +268,11 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         super.onDestroy();
         TCP.getInstance(MainActivity.this).endTask();
         TCP.set_instance(null);
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
     }
 
 }
