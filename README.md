@@ -1,7 +1,6 @@
 # How to Set Up HoanKiem Air Project  
  ### Set up with GAMA Model
-To run a GAMA model with full features. I recommend using the GIT version to run the model. With GAMA running in the eclipse, it will make it easier for developers to figure out where the model's errors are. You can find the download GAMA git version here:  GIT version
-After install Git version successfully, you can do following step to run HoanKiem Air model: <br>
+To run a GAMA model with full features. I recommend using the GIT version to run the model. With GAMA running in the eclipse, it will make it easier for developers to figure out where the model's errors are. You can find the download GAMA git version here (https://gama-platform.org/wiki/1.8.1/InstallingGitVersion). After install Git version successfully, you can do following step to run HoanKiem Air model: <br>
   <ol>
   <li>Step 1: In the ‘ummisco.gama.product’ plugin, open the ‘gama.runtime.product’ file </li><br>
   <li>Step 2: Go to “Overview” tab and click on Synchronize </li> <br>
