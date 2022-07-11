@@ -61,6 +61,9 @@ public class TCP {
         ReceiveMessage.getInstance().subscribe(l);
     }
 
+    public void endTask(){
+        ReceiveMessage.getInstance().cancel(false);
+    }
 
     public int SendMessageTask(String mess, int data) {
            if(socket.isConnected()){
@@ -88,7 +91,7 @@ public class TCP {
         public void subscribe(IMessageListener listener) {
             this.listener = listener;
         }
-        
+
 
         public static ReceiveMessage getInstance() {
             if (_instance==null) {
@@ -101,14 +104,17 @@ public class TCP {
         @Override
         protected Void doInBackground(Void... voids){
             do {
-                try {
-                    InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                    mess = bufferedReader.readLine();
-                    listener.messageReceived(mess);
-                } catch(IOException e){
-                    e.printStackTrace();
+                if(this.isCancelled()){
+                    return null;
                 }
+                    try {
+                        InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
+                        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                        mess = bufferedReader.readLine();
+                        listener.messageReceived(mess);
+                    } catch(IOException e){
+                        e.printStackTrace();
+                    }
             }while(socket.isConnected());
 
             return null;

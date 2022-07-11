@@ -66,7 +66,6 @@ public class MainActivity extends BaseActivity implements IMessageListener{
                 (thread, e) -> {
                     TCP.set_instance(null);
                     Intent intent = new Intent (getApplicationContext(), ReconnectActivity.class);
-//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.putExtra("ip", ip);
                     startActivity(intent);
                 });
@@ -91,7 +90,7 @@ public class MainActivity extends BaseActivity implements IMessageListener{
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        finish();
     }
 
     // Save status when app stop
@@ -269,6 +268,11 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         }
     }
 
-
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        TCP.getInstance(MainActivity.this).endTask();
+        TCP.set_instance(null);
+    }
 
 }
