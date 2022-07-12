@@ -3,11 +3,16 @@ package com.example.hoankiemaircontrol.ui;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RadioButton;
+
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
 
 import com.example.hoankiemaircontrol.R;
 import com.example.hoankiemaircontrol.network.TCP;
@@ -17,6 +22,13 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import java.util.ArrayList;
@@ -47,12 +59,14 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     LineDataSet lineDataSet;
     static ArrayList<Entry> lineEntries = new ArrayList<>();
     private static String ip;
-
+    Button mapButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
         ip = getIntent().getStringExtra("ip");
 
         // Catch UI
@@ -60,7 +74,8 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         mSeekBarNumMotorbikes = findViewById(R.id.seekBar_for_motobikes);
         mRadioGroupRoadScenario = findViewById(R.id.radio_group_road_scenario);
         mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
-
+        mapButton = findViewById(R.id.Button_changetoMap);
+        mapButton.setOnClickListener(this::onClick);
         // Handle uncaught exception
         Thread.setDefaultUncaughtExceptionHandler(
                 (thread, e) -> {
@@ -82,11 +97,16 @@ public class MainActivity extends BaseActivity implements IMessageListener{
             EXTENSION_PLAN = savedInstanceState.getInt("EXTENSION_PLAN");
         }
 
+
+
         ChangeNumberOfCar();
         ChangeNumberOfMotor();
         TCP.getInstance(MainActivity.this).subscribe(this);
 
+
     }
+
+
 
     // Save status when app stop
     @Override
@@ -104,33 +124,11 @@ public class MainActivity extends BaseActivity implements IMessageListener{
 
 
     // Function for handle message that app receive
-    @Override
-    public void messageReceived(String mess) {
-        if (mess != null) {
-            mess2 = mess.replace("[", "").replace("]", "").split(",");
 
-        }else throw new NullPointerException();
-
-        lineChart = findViewById(R.id.LineChart);
-        getEntries();
-        lineChart.notifyDataSetChanged();
-        lineChart.invalidate();
-        lineDataSet = new LineDataSet(lineEntries, "The rate change of pollution");
-        lineData = new LineData(lineDataSet);
-        lineChart.setData(lineData);
-        lineDataSet.setColors(ColorTemplate.MATERIAL_COLORS);
-        lineDataSet.setValueTextColor(Color.BLACK);
-        lineDataSet.setValueTextSize(10f);
+    public void onClick(View view){
+        Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+        startActivity(intent);
     }
-
-
-    private void getEntries() {
-        lineEntries.clear();
-        for(int i=0; i<mess2.length; i++){
-            lineEntries.add(new Entry(i, Float.parseFloat(mess2[i])));
-        }
-    }
-
 
     public void ChangeNumberOfCar(){
         mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
@@ -230,6 +228,35 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         }
     }
 
+    @Override
+    public void messageReceived(String mess) {
+        if (mess != null) {
+            mess2 = mess.replace("[", "").replace("]", "").split(",");
+
+        }else throw new NullPointerException();
+
+        lineChart = findViewById(R.id.LineChart);
+        getEntries();
+        lineChart.notifyDataSetChanged();
+        lineChart.invalidate();
+        lineDataSet = new LineDataSet(lineEntries, "The rate change of pollution");
+        lineData = new LineData(lineDataSet);
+        lineChart.setData(lineData);
+        lineDataSet.setColors(ColorTemplate.MATERIAL_COLORS);
+        lineDataSet.setValueTextColor(Color.BLACK);
+        lineDataSet.setValueTextSize(10f);
+    }
+
+
+    private void getEntries() {
+        lineEntries.clear();
+        for(int i=0; i<mess2.length; i++){
+            lineEntries.add(new Entry(i, Float.parseFloat(mess2[i])));
+        }
+    }
+
+
+
 
     // Reset parameters
     @Override
@@ -263,6 +290,8 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         }
     }
 
+
+
     @Override
     public void onDestroy(){
         super.onDestroy();
@@ -274,5 +303,6 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     public void onBackPressed() {
         finish();
     }
+
 
 }
