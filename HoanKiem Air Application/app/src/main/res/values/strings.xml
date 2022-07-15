@@ -25,10 +25,14 @@
     <string name="cancel" translatable="false">Cancel</string>
     <string name="reset_params_prompt" translatable="false">Do you want to reset all parameters to default?</string>
     <string name="name_of_splash" translatable="false">Hoan Kiem Air Controller</string>
-    <string name="statistic" translatable="false">Statistic table</string>
+    <string name="statistic" translatable="false">Statistic Chart</string>
     <string name="daytime" translatable="false">Daytime</string>
     <string name="daytime_mode" translatable="false">Daytime Mode</string>
     <string name="daytime_off" translatable="false">Off</string>
     <string name="daytime_on" translatable="false">On</string>
     <string name="button_reconnect" translatable="false">Reconnect</string>
+    <string name="title_activity_maps" translatable="false">HoanKiem Air Area</string>
+    <string name="map" translatable="false">Map</string>
+    <string name="ip_address" translatable="false">192.168.0.164</string>
+    <string name="title_activity_maps2">MapsActivity2</string>
 </resources>

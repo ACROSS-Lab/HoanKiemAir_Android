@@ -29,7 +29,8 @@ public class ReconnectActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reconnect);
         ip = getIntent().getStringExtra("ip");
-
+        Intent intent = new Intent();
+        intent.putExtra("ip", ip);
 
         TextViewAddress = findViewById(R.id.edit_text_ip_address_reconnect);
         TextViewAddress.setText(ip);

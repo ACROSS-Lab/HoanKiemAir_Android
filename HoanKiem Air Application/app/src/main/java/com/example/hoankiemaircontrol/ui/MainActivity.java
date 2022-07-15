@@ -3,11 +3,16 @@ package com.example.hoankiemaircontrol.ui;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RadioButton;
+
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
 
 import com.example.hoankiemaircontrol.R;
 import com.example.hoankiemaircontrol.network.TCP;
@@ -17,6 +22,13 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import java.util.ArrayList;
@@ -25,26 +37,24 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 
 public class MainActivity extends BaseActivity implements IMessageListener{
 
-    private static  int DISPLAY_MODE_TRAFFIC = 0;
-    private static  int DISPLAY_MODE_POLLUTION = 1;
-    private static  int NO_CLOSE_ROADS = 0;
-    private static  int PEDESTRIAN_ZONE_ACTIVE = 1;
-    private static  int EXTENSION_PLAN = 2;
+    private final static int DISPLAY_MODE_TRAFFIC = 0;
+    private final static int DISPLAY_MODE_POLLUTION = 1;
+    private final static int NO_CLOSE_ROADS = 0;
+    private final static int PEDESTRIAN_ZONE_ACTIVE = 1;
+    private final static int EXTENSION_PLAN = 2;
 
 
     private DiscreteSeekBar mSeekBarNumCars;
     private DiscreteSeekBar mSeekBarNumMotorbikes;
     private SegmentedGroup mRadioGroupRoadScenario;
     private SegmentedGroup mRadioGroupDisplayMode;
-
-    private int num_cars;
-    private int num_motorbikes;
-    private static String[] mess2;
-
-
     LineChart lineChart;
     LineData lineData;
     LineDataSet lineDataSet;
+    Button mapButton;
+
+
+    private static String[] mess2;
     static ArrayList<Entry> lineEntries = new ArrayList<>();
     private static String ip;
 
@@ -53,6 +63,8 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
         ip = getIntent().getStringExtra("ip");
 
         // Catch UI
@@ -60,6 +72,9 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         mSeekBarNumMotorbikes = findViewById(R.id.seekBar_for_motobikes);
         mRadioGroupRoadScenario = findViewById(R.id.radio_group_road_scenario);
         mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
+        mapButton = findViewById(R.id.Button_changetoMap);
+        mapButton.setOnClickListener(this::onClick);
+
 
         // Handle uncaught exception
         Thread.setDefaultUncaughtExceptionHandler(
@@ -71,70 +86,16 @@ public class MainActivity extends BaseActivity implements IMessageListener{
                 });
 
 
-        //Save status when app stop
-        if(savedInstanceState != null){
-            num_cars = savedInstanceState.getInt("num_cars");
-            num_motorbikes = savedInstanceState.getInt("num_motorbikes");
-            DISPLAY_MODE_TRAFFIC = savedInstanceState.getInt("DISPLAY_MODE_TRAFFIC");
-            DISPLAY_MODE_POLLUTION = savedInstanceState.getInt("DISPLAY_MODE_POLLUTION");
-            NO_CLOSE_ROADS = savedInstanceState.getInt("NO_CLOSE_ROADS");
-            PEDESTRIAN_ZONE_ACTIVE = savedInstanceState.getInt("PEDESTRIAN_ZONE_ACTIVE");
-            EXTENSION_PLAN = savedInstanceState.getInt("EXTENSION_PLAN");
-        }
-
         ChangeNumberOfCar();
         ChangeNumberOfMotor();
         TCP.getInstance(MainActivity.this).subscribe(this);
 
-    }
 
-    @Override
-    public void onBackPressed() {
-        finish();
-    }
-
-    // Save status when app stop
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putInt("num_cars", num_cars);
-        savedInstanceState.putInt("num_motorbikes", num_motorbikes);
-        savedInstanceState.putInt("DISPLAY_MODE_TRAFFIC", 0);
-        savedInstanceState.putInt("DISPLAY_MODE_POLLUTION", 1);
-        savedInstanceState.putInt("NO_CLOSE_ROADS", 0);
-        savedInstanceState.putInt("PEDESTRIAN_ZONE_ACTIVE", 1);
-        savedInstanceState.putInt("EXTENSION_PLAN", 2);
-        super.onSaveInstanceState(savedInstanceState);
     }
 
 
 
     // Function for handle message that app receive
-    @Override
-    public void messageReceived(String mess) {
-        if (mess != null) {
-            mess2 = mess.replace("[", "").replace("]", "").split(",");
-
-        }else throw new NullPointerException();
-
-        lineChart = findViewById(R.id.LineChart);
-        getEntries();
-        lineChart.notifyDataSetChanged();
-        lineChart.invalidate();
-        lineDataSet = new LineDataSet(lineEntries, "The rate change of pollution");
-        lineData = new LineData(lineDataSet);
-        lineChart.setData(lineData);
-        lineDataSet.setColors(ColorTemplate.MATERIAL_COLORS);
-        lineDataSet.setValueTextColor(Color.BLACK);
-        lineDataSet.setValueTextSize(10f);
-    }
-
-
-    private void getEntries() {
-        lineEntries.clear();
-        for(int i=0; i<mess2.length; i++){
-            lineEntries.add(new Entry(i, Float.parseFloat(mess2[i])));
-        }
-    }
 
 
     public void ChangeNumberOfCar(){
@@ -235,6 +196,39 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         }
     }
 
+    @Override
+    public void messageReceived(String mess) {
+        if (mess != null) {
+            mess2 = mess.replace("[", "").replace("]", "").split(",");
+
+        }else throw new NullPointerException();
+
+        lineChart = findViewById(R.id.LineChart);
+        getEntries();
+        lineChart.notifyDataSetChanged();
+        lineChart.invalidate();
+        lineDataSet = new LineDataSet(lineEntries, "The rate change of pollution");
+        lineData = new LineData(lineDataSet);
+        lineChart.setData(lineData);
+        lineDataSet.setColors(ColorTemplate.MATERIAL_COLORS);
+        lineDataSet.setValueTextColor(Color.BLACK);
+        lineDataSet.setValueTextSize(10f);
+    }
+
+
+    private void getEntries() {
+        lineEntries.clear();
+        for(int i=0; i<mess2.length; i++){
+            lineEntries.add(new Entry(i, Float.parseFloat(mess2[i])));
+        }
+    }
+
+
+    public void onClick(View view){
+        Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+        startActivity(intent);
+    }
+
 
     // Reset parameters
     @Override
@@ -268,11 +262,19 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         }
     }
 
+
+
     @Override
     public void onDestroy(){
         super.onDestroy();
         TCP.getInstance(MainActivity.this).endTask();
         TCP.set_instance(null);
     }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
+
 
 }

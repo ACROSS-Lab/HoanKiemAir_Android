@@ -273,6 +273,13 @@
                 android:layout_height="383dp"
                 android:id="@+id/LineChart" />
         </LinearLayout>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/Button_changetoMap"
+            android:text="@string/map" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>
