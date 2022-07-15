@@ -37,29 +37,27 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 
 public class MainActivity extends BaseActivity implements IMessageListener{
 
-    private static  int DISPLAY_MODE_TRAFFIC = 0;
-    private static  int DISPLAY_MODE_POLLUTION = 1;
-    private static  int NO_CLOSE_ROADS = 0;
-    private static  int PEDESTRIAN_ZONE_ACTIVE = 1;
-    private static  int EXTENSION_PLAN = 2;
+    private final static int DISPLAY_MODE_TRAFFIC = 0;
+    private final static int DISPLAY_MODE_POLLUTION = 1;
+    private final static int NO_CLOSE_ROADS = 0;
+    private final static int PEDESTRIAN_ZONE_ACTIVE = 1;
+    private final static int EXTENSION_PLAN = 2;
 
 
     private DiscreteSeekBar mSeekBarNumCars;
     private DiscreteSeekBar mSeekBarNumMotorbikes;
     private SegmentedGroup mRadioGroupRoadScenario;
     private SegmentedGroup mRadioGroupDisplayMode;
-
-    private int num_cars;
-    private int num_motorbikes;
-    private static String[] mess2;
-
-
     LineChart lineChart;
     LineData lineData;
     LineDataSet lineDataSet;
+    Button mapButton;
+
+
+    private static String[] mess2;
     static ArrayList<Entry> lineEntries = new ArrayList<>();
     private static String ip;
-    Button mapButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +74,8 @@ public class MainActivity extends BaseActivity implements IMessageListener{
         mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
         mapButton = findViewById(R.id.Button_changetoMap);
         mapButton.setOnClickListener(this::onClick);
+
+
         // Handle uncaught exception
         Thread.setDefaultUncaughtExceptionHandler(
                 (thread, e) -> {
@@ -84,19 +84,6 @@ public class MainActivity extends BaseActivity implements IMessageListener{
                     intent.putExtra("ip", ip);
                     startActivity(intent);
                 });
-
-
-        //Save status when app stop
-        if(savedInstanceState != null){
-            num_cars = savedInstanceState.getInt("num_cars");
-            num_motorbikes = savedInstanceState.getInt("num_motorbikes");
-            DISPLAY_MODE_TRAFFIC = savedInstanceState.getInt("DISPLAY_MODE_TRAFFIC");
-            DISPLAY_MODE_POLLUTION = savedInstanceState.getInt("DISPLAY_MODE_POLLUTION");
-            NO_CLOSE_ROADS = savedInstanceState.getInt("NO_CLOSE_ROADS");
-            PEDESTRIAN_ZONE_ACTIVE = savedInstanceState.getInt("PEDESTRIAN_ZONE_ACTIVE");
-            EXTENSION_PLAN = savedInstanceState.getInt("EXTENSION_PLAN");
-        }
-
 
 
         ChangeNumberOfCar();
@@ -108,27 +95,8 @@ public class MainActivity extends BaseActivity implements IMessageListener{
 
 
 
-    // Save status when app stop
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putInt("num_cars", num_cars);
-        savedInstanceState.putInt("num_motorbikes", num_motorbikes);
-        savedInstanceState.putInt("DISPLAY_MODE_TRAFFIC", 0);
-        savedInstanceState.putInt("DISPLAY_MODE_POLLUTION", 1);
-        savedInstanceState.putInt("NO_CLOSE_ROADS", 0);
-        savedInstanceState.putInt("PEDESTRIAN_ZONE_ACTIVE", 1);
-        savedInstanceState.putInt("EXTENSION_PLAN", 2);
-        super.onSaveInstanceState(savedInstanceState);
-    }
-
-
-
     // Function for handle message that app receive
 
-    public void onClick(View view){
-        Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-        startActivity(intent);
-    }
 
     public void ChangeNumberOfCar(){
         mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
@@ -256,6 +224,10 @@ public class MainActivity extends BaseActivity implements IMessageListener{
     }
 
 
+    public void onClick(View view){
+        Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+        startActivity(intent);
+    }
 
 
     // Reset parameters

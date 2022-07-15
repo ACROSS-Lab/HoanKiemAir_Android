@@ -28,6 +28,7 @@
         android:layout_gravity="center_horizontal"
         android:backgroundTint="@color/primaryLightColor"
         app:initialCornerAngle="45dp"
+        android:padding="15dp"
         android:text="@string/button_reconnect"/>
 
     <View

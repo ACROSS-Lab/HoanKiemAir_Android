@@ -1,6 +1,6 @@
 /***
 * Name: maingridcells
-* Author: minhduc0711
+* Author: minhduc0711 + hungnq
 * Description: 
 * Tags: Tag1, Tag2, TagN
 ***/
@@ -38,10 +38,15 @@ global skills:[network] {
 //	shape_file buildings_shape_file <- shape_file("../includes/_old_dataset/map3D/HKA_maquette - buildings.shp");
 	
 	geometry shape <- envelope(buildings_shape_file);
+	closed_roads_graphics crg;
 	list<road> open_roads;
 	list<pollutant_cell> active_cells;
 	
 	init {
+		
+		create closed_roads_graphics {
+			myself.crg <- self;
+		}
 		create boundary from: map_boundary_rectangle_shape_file;		
 		create road from: roads_shape_file {
 			// Create a reverse road if the road is not oneway
@@ -87,7 +92,7 @@ global skills:[network] {
 //		create indicator_health_concern_level with: [x::2800, y::2803, width::800, height::200];
 		create param_indicator with: [x::2500, y::2803, size::30, name::"Time", value::"00:00:00", with_box::true, width::1100, height::200];		
 		
-		
+	
 		write "port " + port;
 		do connect protocol: "tcp_server" port: port raw:true;
 		
@@ -103,11 +108,9 @@ global skills:[network] {
 			message mm <- fetch_message();
 			string str_mess <- string(mm.contents);
 			client <- mm.sender;
-			
 			if(str_mess = "Hello Server"){
 				write str_mess;
 			}else{
-				
 				fct <- (str_mess split_with ';')[0];
 				let idx <- fct index_of '{';
 				fct <- copy_between(fct, idx + 1 , length(fct));
@@ -115,64 +118,81 @@ global skills:[network] {
 				param <- (str_mess split_with ';')[1];
 				idx <- param index_of '}';
 				param <- copy_between(param, 0 , idx);
-				 
-				
 				write 'The parameter:' + fct + ' , value:' + param;
-				val <- int(param);
 				
-				if fct = 'n_cars'{
-					n_cars <- val;
-				}if fct = 'n_motorbikes'{
-					n_motorbikes <- val;
-				}if fct = 'road_scenario'{
-					road_scenario <- val;
-				}if fct = 'display_mode'{
-					display_mode <- val;
-				}if fct = 'day_time_traffic'{
-					if(val = 1){
+				do handleMess(fct, param);
+				}
+			}	
+	
+	}
+	
+	action handleMess(string parameter, string value) {
+		switch parameter {
+			match 'n_cars'{
+				val <- int(value);
+				n_cars <- val;
+				break;
+			}
+			match 'n_motorbikes'{
+				val <- int(value);
+				n_motorbikes <- val;
+				break;
+			}
+			match 'display_mode'{
+				val <- int(value);
+				display_mode <- val;
+				break;
+			}
+			match 'day_time_traffic'{
+				val <- int(value);
+				if(val = 1){
 						day_time_traffic <- true;
 						refreshing_rate_plot <- 1#h;
 						starting_date_string <- "05 00 00";
-						step <- 5#mn;
+						step <- 5#mn;		
 					}else{
 						day_time_traffic <- false;
 						refreshing_rate_plot <- 1#mn;
 						starting_date_string <- "00 00 00";
 						step <- 16#s;
+						n_cars <- 0;
+						n_motorbikes <- 0;
 					}
-				}
+					break;
 			}
-			
-		}	
-	
+			match 'Block_of_polygon'{
+				let list_coord <- param replace("lat/lng:", "");
+					list_coord <- list_coord replace("[", "");
+					list_coord <- list_coord replace("]", "");
+					list_coord <- list_coord replace(")", "");
+					list_coord <- list_coord replace(" ", "");
+					list<point> list_points;
+					loop coord over: list_coord split_with "(" {
+						let list_val <- coord split_with ",";
+						let p <- {float(list_val[1]), float(list_val[0])};
+						list_points <- list_points + p;
+					}
+					
+					ask crg {
+						rect <- to_GAMA_CRS(polygon(list_points), "EPSG:4326");						
+					}
+					break;
+			}
+		}
+		
 	}
+	
 	
 	reflex send_to_app when:(cycle mod 10 = 0){
-		do send_stats;
-	}
-	
-	action send_stats {
-		
 		list<float> h;
 		ask line_graph_aqi {
 			h <- val_list;
 		}
-		write "sending : " + h + " to: " + client;
 		ask world{
 			do send to: client contents: h;
 		}
 	}
 	
-//	reflex send when:(cycle mod 100 = 0) {
-//		do send to: "client_group" contents: ("I am Server Leader " + name + ", I give order to client_group at " + cycle);
-//		
-//	}
-//	
-//	reflex send{
-//		do send to: client contents: ("I am Server Leader " + name + ", I give order to client_group at " + cycle);
-//		
-//	}
-//	
 	action update_vehicle_population(string type, int delta) {
 		list<vehicle> vehicles <- vehicle where (each.type = type);
 		if (delta < 0) {
@@ -208,39 +228,27 @@ global skills:[network] {
 		n_motorbikes_prev <- n_motorbikes;
 	}
 
-	reflex update_road_scenario when: road_scenario != road_scenario_prev {
+	reflex update_road_scenario{
 		string param_val;
-		switch road_scenario {
-			match 0 {
-				open_roads <- list(road);
-				param_val <- "No closed road";
-				break;
-			}
-			match 1 {
-				open_roads <- road where !each.s1_closed;
-				param_val <- "Lake border closed";
-				break;
-			}
-			match 2 {
-				open_roads <- road where !each.s2_closed;
-				param_val <- "Lake border with \n extra roads closed";
-				break;
-			}
-		}
 		
+		ask crg{
+			closed_roads <- road overlapping rect;
+		}
+		open_roads <- road - crg.closed_roads;
 		// Recreate road network
+		
 		map<road, float> road_weights <- open_roads as_map (each::each.shape.perimeter); 
 		road_network <- as_edge_graph(open_roads) with_weights road_weights;
+		
 		ask vehicle {
 			recompute_path <- true;
 		}
 		
 		// Change the display of roads
-		list<road> closed_roads <- road - open_roads;
 		ask open_roads {
 			closed <- false;
 		}
-		ask closed_roads {
+		ask crg.closed_roads {
 			closed <- true;
 		}
 
@@ -251,7 +259,6 @@ global skills:[network] {
 		ask first(param_indicator where (each.name = "Road scenario")) {
 			do update(param_val);
 		}
-		road_scenario_prev <- road_scenario;
 	}
 	
 	reflex update_display_mode when: display_mode_prev != display_mode {
@@ -375,11 +382,7 @@ global skills:[network] {
 		day_time_color <- blend(#black,day_time_color,1-day_time_color_blend_factor);
 	}
 	
-	/*
-	 * TODO: factorize code with general_color_brew
-	 * 
-	 * Compute a traffic rate according to day time
-	 */
+	
 	float general_traffic_daytime {
 		if(daytime_trafic_peak.keys one_matches (each.hour = current_date.hour 
 			and each.minute = current_date.minute and each.second = current_date.second)){
@@ -411,19 +414,22 @@ global skills:[network] {
 	}
 }
 
-experiment exp autorun: true {
-//	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 500;
-//	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 1000;
-//	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2;
-//	parameter "Display mode" var: display_mode <- 0 min: 0 max: 1;
-//	parameter "Refreshing time plot" var: refreshing_rate_plot init: 2#mn min:1#mn max: 1#h;
+species closed_roads_graphics {
+	list<road> closed_roads;
 	
+	geometry rect <- nil;
+	
+	
+}
+
+experiment exp autorun: true {
 	output {
 		display main type: opengl fullscreen: false toolbar: false background: day_time_color 
 		// draw_env: true
 camera_location: {983.1376,1519.9429,3978.7622} camera_target: {983.1376,1519.8784,-0.0026} camera_orientation: {0.0,1.0,0.0}
 //keystone: [{-0.024201832069909168,-0.02964181368886576,0.0},{-0.019361465655927335,1.011474250460207,0.0},{0.9965425954185845,1.0076495003068047,0.0},{0.9965425954185843,0.006693312768453641,0.0}]
 		{
+
 			species boundary;			
 			species vehicle;
 			species road;
@@ -439,18 +445,10 @@ camera_location: {983.1376,1519.9429,3978.7622} camera_target: {983.1376,1519.87
 	//		species line_graph;
 			species line_graph_aqi;
 			species indicator_health_concern_level;
+			species closed_roads_graphics;
 		}
 	}
 	
 	
 	
 }
-
-//experiment daytime parent:exp autorun:true {
-//	parameter "Daytime traffic" var:day_time_traffic init:true;
-//	parameter "Time step" var:step init:5#mn min:1#mn max:30#mn;
-//	parameter "Refreshing time plot" var: refreshing_rate_plot init: 1#h min:1#mn max: 1#h;
-//	parameter "Starting time" var:starting_date_string init:"05 00 00";
-//	parameter "Display mode" var: display_mode <- 0 min: 0 max: 1;
-//	
-//}

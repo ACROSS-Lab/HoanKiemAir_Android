@@ -65,7 +65,7 @@ public class TCP {
         ReceiveMessage.getInstance().cancel(false);
     }
 
-    public int SendMessageTask(String mess, int data) {
+    public void SendMessageTask(String mess, Object data) {
            if(socket.isConnected()){
                try {
                    pt = new PrintWriter(socket.getOutputStream());
@@ -77,7 +77,6 @@ public class TCP {
                    e.printStackTrace();
                }
            }
-           return data;
     }
 
 

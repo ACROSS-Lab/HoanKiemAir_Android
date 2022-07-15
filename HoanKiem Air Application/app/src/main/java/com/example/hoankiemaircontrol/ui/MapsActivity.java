@@ -1,114 +1,84 @@
 package com.example.hoankiemaircontrol.ui;
 
-import android.annotation.SuppressLint;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.os.Bundle;
-import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.hoankiemaircontrol.R;
 import com.example.hoankiemaircontrol.databinding.ActivityMapsBinding;
+import com.example.hoankiemaircontrol.network.TCP;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private GoogleMap mMap;
+    Button draw_polygon;
+    Button clear;
+    Polygon polygon, polygon1;
 
-    Boolean Is_MAP_Moveable = false;
-    GoogleMap mMap;
-    List<LatLng> val;
+    private final List<LatLng> latLngList = new ArrayList<>();
+    private final List<Marker> markerList = new ArrayList<>();
 
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-
-
-        // to detect map is movable
-
-
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(MapsActivity.this);
-        }
 
         ActivityMapsBinding binding = ActivityMapsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        if (mapFragment != null){
+            mapFragment.getMapAsync(this);
+        }
+
+
+        draw_polygon = findViewById(R.id.draw_polygon);
+        draw_polygon.setOnClickListener(this::drawPolygon);
+        clear = findViewById(R.id.clear);
+        clear.setOnClickListener(this::drawClear);
 
     }
 
-    private void Draw_Map() {
-        PolygonOptions rectOptions = new PolygonOptions();
-        rectOptions.addAll(val);
-        rectOptions.strokeColor(Color.RED);
-        rectOptions.strokeWidth(7);
-        rectOptions.fillColor(Color.CYAN);
-        Polygon polygon = mMap.addPolygon(rectOptions);
+    private void drawPolygon(View view) {
+        if(polygon != null){
+            polygon.remove();
+        }
+        PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).clickable(true)
+                                        .strokeColor(Color.BLUE).strokeWidth(3);
+        polygon = mMap.addPolygon(polygonOptions);
+
+        TCP.getInstance(MapsActivity.this).SendMessageTask("Block_of_polygon", latLngList);
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    public void Draw_in_Map(){
-        FrameLayout fram_map = findViewById(R.id.fram_map);
-        Button btn_draw_State = findViewById(R.id.btn_draw_State);
-        btn_draw_State.setOnClickListener(v -> mMap.getUiSettings().setScrollGesturesEnabled(false));
+    private void drawClear(View view){
+        if(polygon != null) polygon.remove();
+        for(Marker marker : markerList) marker.remove();
+        latLngList.clear();
+        markerList.clear();
 
-        fram_map.setOnTouchListener((v, event) -> {
-            float x = event.getX();
-            float y = event.getY();
-
-            int x_co = Math.round(x);
-            int y_co = Math.round(y);
-
-            Projection projection = mMap.getProjection();
-            Point x_y_points = new Point(x_co, y_co);
-
-            LatLng latLng = projection.fromScreenLocation(x_y_points);
-            double latitude = latLng.latitude;
-
-            double longitude = latLng.longitude;
-
-            int eventaction = event.getAction();
-            switch (eventaction) {
-                case MotionEvent.ACTION_DOWN:
-                    // finger touches the screen
-                    val.add(new LatLng(latitude, longitude));
-
-                case MotionEvent.ACTION_MOVE:
-                    // finger moves on the screen
-                    val.add(new LatLng(latitude, longitude));
-
-                case MotionEvent.ACTION_UP:
-                    // finger leaves the screen
-                    Draw_Map();
-                    break;
-            }
-
-            return Is_MAP_Moveable;
-
-        });
+        TCP.getInstance(MapsActivity.this). SendMessageTask("Block_of_polygon", latLngList);
     }
 
-    @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        mMap = googleMap;
-
+    public void setBounder(){
         double top = 21.04287722989717;
         double right = 105.87771067295719;
         double bottom = 21.02153486576196;
@@ -122,7 +92,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 1150, 1150, 0));
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(MapsActivity.this, R.raw.map_style));
 
-        Polygon polygon1 = mMap.addPolygon(new PolygonOptions()
+        polygon1 = mMap.addPolygon(new PolygonOptions()
                 .add(new LatLng(21.020657, 105.841596),
                         new LatLng(21.028989, 105.841660),
                         new LatLng(21.029189, 105.842561),
@@ -141,7 +111,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         new LatLng(21.018370, 105.855077),
                         new LatLng(21.017960, 105.853918))
                 .strokeColor(Color.RED).strokeWidth(3));
-
-        Draw_in_Map();
     }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
+
+        setBounder();
+
+        mMap.setOnMapClickListener(latLng -> {
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng);
+            Marker marker = mMap.addMarker(markerOptions);
+
+            latLngList.add(latLng);
+            markerList.add(marker);
+        });
+
+    }
+
 }
