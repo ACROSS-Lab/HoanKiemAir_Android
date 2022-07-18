@@ -98,48 +98,43 @@
             android:textColor="@color/primaryTextColor"
             android:textSize="18sp" />
 
-        <info.hoang8f.android.segmented.SegmentedGroup xmlns:segmentedgroup="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/radio_group_road_scenario"
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="75dp"
-            android:layout_margin="10dp"
-            android:checkedButton="@id/radio_button_scenario_0"
-            android:orientation="horizontal"
-            segmentedgroup:sc_border_width="2dp"
-            segmentedgroup:sc_corner_radius="5dp"
-            segmentedgroup:sc_tint_color="@color/primaryColor">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="10dp">
 
-            <RadioButton
-                android:id="@+id/radio_button_scenario_0"
-                style="@style/RadioButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:onClick="onRoadScenarioRadioButtonClicked"
-                android:text="@string/radio_button_no_close_roads"
-                android:textSize="20sp" />
 
-            <RadioButton
-                android:id="@+id/radio_button_scenario_1"
-                style="@style/RadioButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:onClick="onRoadScenarioRadioButtonClicked"
-                android:text="@string/radio_button_scenario_1"
-                android:textSize="20sp"/>
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="600dp"
+                tools:context=".ui.MapsActivity" />
 
-            <RadioButton
-                android:id="@+id/radio_button_scenario_2"
-                style="@style/RadioButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:onClick="onRoadScenarioRadioButtonClicked"
-                android:text="@string/radio_button_scenario_2"
-                android:textSize="20sp" />
-        </info.hoang8f.android.segmented.SegmentedGroup>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_alignBottom="@+id/map">
 
+                <Button
+                    android:id="@+id/draw_polygon"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Draw polygon" />
+
+                <Button
+                    android:id="@+id/clear"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Clear" />
+            </LinearLayout>
+
+        </LinearLayout>
         <View
             style="@style/Divider"
             android:layout_marginTop="15dp" />
