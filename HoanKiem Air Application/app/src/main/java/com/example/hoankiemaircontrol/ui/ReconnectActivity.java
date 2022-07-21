@@ -29,9 +29,6 @@ public class ReconnectActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reconnect);
         ip = getIntent().getStringExtra("ip");
-        Intent intent = new Intent();
-        intent.putExtra("ip", ip);
-
         TextViewAddress = findViewById(R.id.edit_text_ip_address_reconnect);
         TextViewAddress.setText(ip);
         mConnectButton = findViewById(R.id.button_reconnect);
@@ -69,13 +66,22 @@ public class ReconnectActivity extends AppCompatActivity {
             TCP_connect.createConnection();
 
             Intent i = new Intent(ReconnectActivity.this, MainActivity.class);
+            i.putExtra("ip", ip);
             startActivity(i);
 
         });
 
         mConnectButton.startAnimation(() -> null);
         thread.start();
+    }
 
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(1);
 
     }
+
 }

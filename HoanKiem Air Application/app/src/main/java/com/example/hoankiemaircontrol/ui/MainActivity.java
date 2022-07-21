@@ -3,7 +3,6 @@ package com.example.hoankiemaircontrol.ui;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -34,6 +33,7 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,14 +43,9 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
 
     private final static int DISPLAY_MODE_TRAFFIC = 0;
     private final static int DISPLAY_MODE_POLLUTION = 1;
-    private final static int NO_CLOSE_ROADS = 0;
-    private final static int PEDESTRIAN_ZONE_ACTIVE = 1;
-    private final static int EXTENSION_PLAN = 2;
-
 
     private DiscreteSeekBar mSeekBarNumCars;
     private DiscreteSeekBar mSeekBarNumMotorbikes;
-    private SegmentedGroup mRadioGroupRoadScenario;
     private SegmentedGroup mRadioGroupDisplayMode;
     LineChart lineChart;
     LineData lineData;
@@ -75,22 +70,22 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        ip = getIntent().getStringExtra("ip");
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null){
             mapFragment.getMapAsync(MainActivity.this);
         }
 
+
+
+        ip = getIntent().getStringExtra("ip");
         // Catch UI
         mSeekBarNumCars = findViewById(R.id.seekBar_for_cars);
         mSeekBarNumMotorbikes = findViewById(R.id.seekBar_for_motobikes);
         mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
         draw_polygon = findViewById(R.id.draw_polygon);
-        draw_polygon.setOnClickListener(this::drawPolygon);
         clear = findViewById(R.id.clear);
+        draw_polygon.setOnClickListener(this::drawPolygon);
         clear.setOnClickListener(this::drawClear);
 
         // Handle uncaught exception
@@ -102,15 +97,52 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
                     startActivity(intent);
                 });
 
-
         ChangeNumberOfCar();
         ChangeNumberOfMotor();
         TCP.getInstance(MainActivity.this).subscribe(this);
 
-
     }
 
 
+    // Function for handle message that app receive
+
+    public void ChangeNumberOfCar(){
+        mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
+            @Override
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                 TCP.getInstance(MainActivity.this).SendMessageTask("n_cars", value);
+            }
+
+            @Override
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+        });
+    }
+
+    public void ChangeNumberOfMotor(){
+        mSeekBarNumMotorbikes.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
+            @Override
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                TCP.getInstance(MainActivity.this).SendMessageTask("n_motorbikes", value);
+            }
+
+            @Override
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
+
+            }
+        });
+    }
 
     private void drawPolygon(View view) {
         if(polygon != null){
@@ -167,68 +199,22 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
                 .strokeColor(Color.RED).strokeWidth(3));
     }
 
-    // Function for handle message that app receive
 
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
 
-    public void ChangeNumberOfCar(){
-        mSeekBarNumCars.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
-            @Override
-            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                 TCP.getInstance(MainActivity.this).SendMessageTask("n_cars", value);
-            }
+        setBounder();
 
-            @Override
-            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
+        mMap.setOnMapClickListener(latLng -> {
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng);
+            Marker marker = mMap.addMarker(markerOptions);
 
-            }
-
-            @Override
-            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
-
-            }
+            latLngList.add(latLng);
+            markerList.add(marker);
         });
+
     }
-
-    public void ChangeNumberOfMotor(){
-        mSeekBarNumMotorbikes.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
-            @Override
-            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-                TCP.getInstance(MainActivity.this).SendMessageTask("n_motorbikes", value);
-            }
-
-            @Override
-            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
-
-            }
-        });
-    }
-
-    // Button change status of road
-//    public void onRoadScenarioRadioButtonClicked(View v) {
-//        boolean checked = ((RadioButton) v).isChecked();
-//        // Check which radio button was clicked
-//        switch(v.getId()) {
-//            case R.id.radio_button_scenario_0:
-//                if (checked)
-//                    TCP.getInstance(MainActivity.this).SendMessageTask("road_scenario", NO_CLOSE_ROADS);
-//
-//                break;
-//            case R.id.radio_button_scenario_1:
-//                if (checked)
-//                    TCP.getInstance(MainActivity.this).SendMessageTask("road_scenario", PEDESTRIAN_ZONE_ACTIVE);
-//                break;
-//            case R.id.radio_button_scenario_2:
-//                if (checked)
-//                    TCP.getInstance(MainActivity.this).SendMessageTask("road_scenario", EXTENSION_PLAN);
-//
-//                break;
-//        }
-//    }
 
 
     // Button change status of display mode
@@ -272,9 +258,7 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
     public void messageReceived(String mess) {
         if (mess != null) {
             mess2 = mess.replace("[", "").replace("]", "").split(",");
-
         }else throw new NullPointerException();
-
         lineChart = findViewById(R.id.LineChart);
         getEntries();
         lineChart.notifyDataSetChanged();
@@ -294,7 +278,6 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
             lineEntries.add(new Entry(i, Float.parseFloat(mess2[i])));
         }
     }
-
 
     // Reset parameters
     @Override
@@ -343,19 +326,5 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
     }
 
 
-    @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        mMap = googleMap;
 
-        setBounder();
-
-        mMap.setOnMapClickListener(latLng -> {
-            MarkerOptions markerOptions = new MarkerOptions().position(latLng);
-            Marker marker = mMap.addMarker(markerOptions);
-
-            latLngList.add(latLng);
-            markerList.add(marker);
-        });
-
-    }
 }

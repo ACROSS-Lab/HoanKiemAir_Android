@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">HoanKiemAir Controller</string>
+    <string name="app_name" translatable="false">HoanKiemAir</string>
 
     <string name="ip_text_hint">Host IP address</string>
     <string name="button_connect">Connect</string>
@@ -34,5 +34,5 @@
     <string name="title_activity_maps" translatable="false">HoanKiem Air Area</string>
     <string name="map" translatable="false">Map</string>
     <string name="ip_address" translatable="false">192.168.0.164</string>
-    <string name="title_activity_maps2">MapsActivity2</string>
+    <string name="title_activity_maps2" translatable="false">MapsActivity2</string>
 </resources>
