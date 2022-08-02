@@ -175,7 +175,7 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
                 new LatLng(top, right)
         );
 
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 1150, 1150, 0));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 2500, 2500, 0));
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(MainActivity.this, R.raw.map_style));
 
         polygon1 = mMap.addPolygon(new PolygonOptions()
