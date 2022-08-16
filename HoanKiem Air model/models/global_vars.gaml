@@ -27,7 +27,7 @@ global {
 	
 	// Pollution diffusion
 	float pollutant_decay_rate <-  0.99; //0.99;
-	float pollutant_diffusion <- 0.05;
+	float pollutant_diffusion <- 0.1;
 	int grid_size <- 50;
 	int grid_depth <- 10; // cubic meters
 	

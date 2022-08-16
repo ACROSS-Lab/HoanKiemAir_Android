@@ -40,14 +40,6 @@ species road schedules: [] {
 			}			
 		}
 		
-		
-//		if (closed) {
-//			draw shape + 5 color: palet[CLOSED_ROAD];
-//		} else if (display_mode = 0) {
-//			draw shape+2/(speed_coeff) color: (speed_coeff=1.0) ? palet[NOT_CONGESTED_ROAD] : palet[CONGESTED_ROAD] /*end_arrow: 10*/;
-//		} else {
-//			draw shape color: palet[ROAD_POLLUTION_DISPLAY] /*end_arrow: 10*/;
-//		}
 	}
 }
 
@@ -105,16 +97,16 @@ species building schedules: [] {
 	agent p_cell;
 	
 	init {
-		if height < min_height {
-			height <- mean_height + rnd(0.3, 0.3);
-		}
+//		if height < min_height {
+//			height <- mean_height + rnd(0.3, 0.3);
+//		}
 	}
 	
 	aspect default {
 		if (display_mode = 0) {
-			draw shape color: (type = type_outArea)?palet[BUILDING_OUTAREA]:palet[BUILDING_BASE] /*border: #darkgrey*/ /*depth: height * 10*/;
+			draw shape color: palet[BUILDING_BASE] /*border: #darkgrey*/ /*depth: height * 10*/;
 		} else {
-			draw shape color: (type = type_outArea)?palet[BUILDING_OUTAREA]:world.get_pollution_color(aqi) /*border: #darkgrey*/ depth: height * 10;
+			draw shape color: world.get_pollution_color(aqi) /*border: #darkgrey*/ depth: height * 10;
 		}
 	}
 }
@@ -139,7 +131,7 @@ species dummy_road schedules: [] {
 	int linkToRoad;
 	float density <- 5.0;
 	road linked_road;
-	int segments_number ;
+	int segments_number;
 	int aspect_size <- 5;
 	list<float> segments_x <- [];
 	list<float> segments_y <- [];
@@ -191,4 +183,12 @@ species dummy_road schedules: [] {
 //			}
 //		}	
 	}
+	
+	
+	
 }
+
+species closed_roads_graphics {
+		list<road> closed_roads;
+		geometry rect <- nil;
+	}

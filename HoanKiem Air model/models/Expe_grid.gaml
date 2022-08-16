@@ -10,6 +10,7 @@ model ExpebaselineGrid
 import "main (grid cells).gaml" 
  
 global {
+	
 	string exp_name <- "";
 		
 	float pollutant_decay_rate <- 0.99;
