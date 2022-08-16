@@ -13,6 +13,7 @@ global {
 	int n_motorbikes;
 	int road_scenario;
 	int display_mode;
+	int Expand_map;
 	// Save params' old values to detect value changes
 	int n_cars_prev;
 	int n_motorbikes_prev;

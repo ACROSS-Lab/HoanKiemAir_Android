@@ -28,6 +28,10 @@ species road schedules: [] {
 	}
 
 	aspect default {
+		if(Expand_map = 1){
+			draw shape + 5 color: #black;
+		}
+		
 		if(display_mode = 0)  {
 			if (closed) {
 				draw shape + 5 color: palet[CLOSED_ROAD_TRAFFIC];

@@ -35,15 +35,16 @@ global skills:[network] {
 	// Load shapefiles
 	string resources_dir <- "../includes/bigger_map/";
 	shape_file map_boundary_rectangle_shape_file <- shape_file(resources_dir + "resize_rectangle.shp");	
-	shape_file roads_shape_file <- shape_file(resources_dir + "full_roads.shp");
-	shape_file dummy_roads_shape_file <- shape_file(resources_dir + "small_dummy_roads.shp");
+	shape_file roads_shape_file <- shape_file("../includes/Expand_map/full_roads.shp");
+	shape_file dummy_roads_shape_file <- shape_file(resources_dir + "roads.shp");
 	shape_file buildings_shape_file <- shape_file(resources_dir + "buildings.shp");
 	shape_file buildings_admin_shape_file <- shape_file(resources_dir + "buildings_admin.shp");
 	shape_file naturals_shape_file <- shape_file(resources_dir + "naturals.shp");
+	shape_file new_buildings_shape_file <- shape_file("../includes/Expand_map/buildings.shp");
 
 
 	
-	geometry shape <- envelope(buildings_shape_file);
+	geometry shape <- envelope(map_boundary_rectangle_shape_file);
 	closed_roads_graphics crg;
 	list<road> open_roads;
 	list<pollutant_cell> active_cells;
@@ -72,12 +73,13 @@ global skills:[network] {
 		active_cells <- pollutant_cell overlapping road_geometry;
 		
 		// Additional visualization
-		create building from: buildings_shape_file {
-			p_cell <- pollutant_cell closest_to self;
-		}
+		
 		create decoration_building from: buildings_admin_shape_file;
 		create dummy_road from: dummy_roads_shape_file;
 		create natural from: naturals_shape_file;
+		create building from: new_buildings_shape_file{
+			p_cell <- pollutant_cell closest_to self;
+		}
 		
 //		create background with: [x::-1350, y::1000, width::1300, height::1100, alpha::0.6];
 //		create param_indicator with: [x::-1300, y::1100, size::20, name::"Time", value::"00:00:00"];
@@ -201,6 +203,7 @@ global skills:[network] {
 				break;
 				
 			}
+			
 		}
 		
 	}
@@ -439,6 +442,7 @@ global skills:[network] {
 		write "Absorb pollutants: " + time_absorb_pollutants;
 		write "Diffuse pollutants: " + time_diffuse_pollutants;
 		time_vehicles_move <- 0.0;
+	
 	}
 }
 
@@ -466,11 +470,11 @@ experiment exp autorun: true {
 		//  grid pollutant_cell transparency: (display_mode = 0) ? 1.0 : 0.4 elevation: norm_pollution_level * 10 triangulation: true;
 			
 		//	species background;
-			species progress_bar;
-			species param_indicator;
+//			species progress_bar;
+//			species param_indicator;
 	   //	species line_graph;
-			species line_graph_aqi;
-			species indicator_health_concern_level;
+//			species line_graph_aqi;
+//			species indicator_health_concern_level;
 			species closed_roads_graphics;
 		}
 	}

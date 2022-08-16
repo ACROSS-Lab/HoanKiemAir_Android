@@ -47,6 +47,7 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
     private DiscreteSeekBar mSeekBarNumCars;
     private DiscreteSeekBar mSeekBarNumMotorbikes;
     private SegmentedGroup mRadioGroupDisplayMode;
+    private SegmentedGroup mRadioGroupMapSenarios;
     LineChart lineChart;
     LineData lineData;
     LineDataSet lineDataSet;
@@ -80,6 +81,7 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
 
         ip = getIntent().getStringExtra("ip");
         // Catch UI
+        mRadioGroupMapSenarios = findViewById(R.id.radio_group_map_senarios);
         mSeekBarNumCars = findViewById(R.id.seekBar_for_cars);
         mSeekBarNumMotorbikes = findViewById(R.id.seekBar_for_motobikes);
         mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
@@ -250,6 +252,23 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
             case R.id.radio_button_on:
                 if (checked)
                     TCP.getInstance(MainActivity.this).SendMessageTask("day_time_traffic", 1);
+                break;
+        }
+    }
+
+    public void onMapSenariosClicked(View view) {
+        boolean checked = ((RadioButton) view).isChecked();
+
+        // Check which radio button was clicked
+        switch(view.getId()) {
+            case R.id.radio_button_mapsenarios_oldmap:
+                if (checked)
+                    TCP.getInstance(MainActivity.this).SendMessageTask("Expand_map", 0);
+
+                break;
+            case R.id.radio_button_mapsenarios_expandmap:
+                if (checked)
+                    TCP.getInstance(MainActivity.this).SendMessageTask("Expand_map", 1);
                 break;
         }
     }
