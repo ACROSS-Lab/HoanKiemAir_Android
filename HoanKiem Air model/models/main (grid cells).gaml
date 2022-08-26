@@ -46,7 +46,6 @@ global skills:[network] {
 	closed_roads_graphics crg;
 	list<road> open_roads;
 	list<pollutant_cell> active_cells;
-	float t1;float t2;float t3;float t4;float t5;
 	
 	init {
 		
@@ -70,8 +69,7 @@ global skills:[network] {
 		}
 		
 		open_roads <- list(road);
-		map<road, float> road_weights <- road as_map (each::each.shape.perimeter); 
-		road_network <- as_edge_graph(road) with_weights road_weights;
+		road_network <- as_edge_graph(road) with_shortest_path_algorithm #NBAStar;
 		geometry road_geometry <- union(road accumulate (each.shape));
 		active_cells <- pollutant_cell overlapping road_geometry;
 		
@@ -112,10 +110,6 @@ global skills:[network] {
 	
 		
 	}
-	
-	reflex info_time {
-			write sample(t1) + " " + sample(t2) + " " + sample(t3) + " " +sample(t4);
-		}
 	
 	
 	reflex receive when: has_more_message() {
@@ -161,7 +155,6 @@ global skills:[network] {
 	}
 	
 	action handleMess(string parameter, string value) {
-		float t <- machine_time;
 		switch parameter {
 			match 'n_cars'{
 				val <- int(value);
@@ -217,8 +210,6 @@ global skills:[network] {
 			}
 			
 		}
-		t4 <- t4 + (machine_time - t);
-		
 	}
 	
 	
@@ -252,54 +243,54 @@ global skills:[network] {
 	}
 	
 	reflex update_car_population when: n_cars != n_cars_prev {
-		float t <- machine_time;
 		int delta_cars <- n_cars - n_cars_prev;
 		do update_vehicle_population("car", delta_cars);
 		n_cars_prev <- n_cars;
-		write delta_cars;
-		t2 <- t2 + machine_time - t;
 	}
 	
 	reflex update_motorbike_population when: n_motorbikes != n_motorbikes_prev {
-		float t <- machine_time;
 		int delta_motorbikes <- n_motorbikes - n_motorbikes_prev;
 		do update_vehicle_population("motorbike", delta_motorbikes);
 		n_motorbikes_prev <- n_motorbikes;
-		t3 <- t3 + machine_time -t;
 	}
 
 	reflex update_road_scenario{
 		string param_val;
-		
+		list<road> new_closed_roads;
 		ask crg{
-			closed_roads <- road overlapping rect;
+			new_closed_roads <- new_closed_roads + (road overlapping rect) ;
+			
 		}
-		
-		open_roads <- road - crg.closed_roads;
+		new_closed_roads <- new_closed_roads sort_by int(each);
+		if new_closed_roads != crg.closed_roads {
+			crg.closed_roads <- new_closed_roads;
+			open_roads <- road - crg.closed_roads;
+			map<road, float> road_weights <- open_roads as_map (each::each.shape.perimeter); 
+			road_network <- as_edge_graph(open_roads) with_weights road_weights;
+			ask vehicle {
+				recompute_path <- true;
+			}
+			// Change the display of roads
+			ask open_roads {
+				closed <- false;
+			}
+			ask crg.closed_roads {
+				closed <- true;
+			}
+			// Choose the active cells again
+			geometry road_geometry <- union(open_roads accumulate each.shape);
+			active_cells <- pollutant_cell overlapping road_geometry;
+			
+			ask first(param_indicator where (each.name = "Road scenario")) {
+				do update(param_val);
+			}
+		}
 		
 		// Recreate road network
-		map<road, float> road_weights <- open_roads as_map (each::each.shape.perimeter); 
-		road_network <- as_edge_graph(open_roads) with_weights road_weights;
+			
 		
-		ask vehicle {
-			recompute_path <- true;
-		}
 		
-		// Change the display of roads
-		ask open_roads {
-			closed <- false;
-		}
-		ask crg.closed_roads {
-			closed <- true;
-		}
-
-		// Choose the active cells again
-		geometry road_geometry <- union(open_roads accumulate each.shape);
-		active_cells <- pollutant_cell overlapping road_geometry;
 		
-		ask first(param_indicator where (each.name = "Road scenario")) {
-			do update(param_val);
-		}
 	}
 	
 	reflex update_display_mode when: display_mode_prev != display_mode {
@@ -446,12 +437,13 @@ global skills:[network] {
 	// ---------- BENCHMARK ---------- //
 	
 	reflex benchmark when: benchmark and every(10 #cycle) {
+		write "\n***** CYCLE: " + cycle + " *****";
 		write "Vehicles move: " + time_vehicles_move;
 		write "Path recomputed: " + nb_recompute_path;
 		write "Create congestions: " + time_create_congestions;
 		write "Absorb pollutants: " + time_absorb_pollutants;
 		write "Diffuse pollutants: " + time_diffuse_pollutants;
-		time_vehicles_move <- 0.0;
+		//time_vehicles_move <- 0.0;
 	
 	}
 }
