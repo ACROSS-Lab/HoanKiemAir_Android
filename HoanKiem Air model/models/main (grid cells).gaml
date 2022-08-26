@@ -29,27 +29,29 @@ global skills:[network] {
 	float time_diffuse_pollutants;
 	float time_create_congestions;
 
-	float step <- 16#s;
+	float step <- 1#s;
 	date starting_date <- date(starting_date_string,"HH mm ss");
 	
 	// Load shapefiles
 	string resources_dir <- "../includes/bigger_map/";
 	shape_file map_boundary_rectangle_shape_file <- shape_file(resources_dir + "resize_rectangle.shp");	
-	shape_file roads_shape_file <- shape_file("../includes/Expand_map/full_roads.shp");
+	shape_file roads_shape_file <- shape_file(resources_dir + "full_roads.shp");
 	shape_file dummy_roads_shape_file <- shape_file(resources_dir + "roads.shp");
 	shape_file buildings_shape_file <- shape_file(resources_dir + "buildings.shp");
 	shape_file buildings_admin_shape_file <- shape_file(resources_dir + "buildings_admin.shp");
 	shape_file naturals_shape_file <- shape_file(resources_dir + "naturals.shp");
 	shape_file new_buildings_shape_file <- shape_file("../includes/Expand_map/buildings.shp");
 
-
-	
 	geometry shape <- envelope(map_boundary_rectangle_shape_file);
 	closed_roads_graphics crg;
 	list<road> open_roads;
 	list<pollutant_cell> active_cells;
+	float t1;float t2;float t3;float t4;float t5;
 	
 	init {
+		
+	
+			
 		create closed_roads_graphics{
 			myself.crg <- self;
 		}
@@ -66,6 +68,7 @@ global skills:[network] {
 				}
 			}
 		}
+		
 		open_roads <- list(road);
 		map<road, float> road_weights <- road as_map (each::each.shape.perimeter); 
 		road_network <- as_edge_graph(road) with_weights road_weights;
@@ -80,6 +83,9 @@ global skills:[network] {
 		create building from: new_buildings_shape_file{
 			p_cell <- pollutant_cell closest_to self;
 		}
+		create building from: buildings_shape_file{
+			p_cell <- pollutant_cell closest_to self;
+		}	
 		
 //		create background with: [x::-1350, y::1000, width::1300, height::1100, alpha::0.6];
 //		create param_indicator with: [x::-1300, y::1100, size::20, name::"Time", value::"00:00:00"];
@@ -103,9 +109,13 @@ global skills:[network] {
 		write "port " + port;
 		do connect protocol: "tcp_server" port: port raw:true;
 		
-		
+	
 		
 	}
+	
+	reflex info_time {
+			write sample(t1) + " " + sample(t2) + " " + sample(t3) + " " +sample(t4);
+		}
 	
 	
 	reflex receive when: has_more_message() {
@@ -117,6 +127,7 @@ global skills:[network] {
 		
 			if(client in list_client){
 				exist <- true;
+				
 			}else{
 				list_client << client;
 				
@@ -150,6 +161,7 @@ global skills:[network] {
 	}
 	
 	action handleMess(string parameter, string value) {
+		float t <- machine_time;
 		switch parameter {
 			match 'n_cars'{
 				val <- int(value);
@@ -205,25 +217,23 @@ global skills:[network] {
 			}
 			
 		}
+		t4 <- t4 + (machine_time - t);
 		
 	}
 	
 	
 	reflex list_pollution when:(cycle mod 5 = 0){
-		
 		ask line_graph_aqi {
 			list_pollution <- val_list;
 		}
-		
 		ask world{
 			do send to: list_client contents: list_pollution;
 		}
-		
-	
 	}
 	
 	
 	action update_vehicle_population(string type, int delta) {
+		
 		list<vehicle> vehicles <- vehicle where (each.type = type);
 		if (delta < 0) {
 			ask -delta among vehicles {
@@ -232,6 +242,7 @@ global skills:[network] {
 		} else {
 			create vehicle number: delta with: [type::type];
 		}
+		
 	}
 	
 	reflex update_vehicle_population_according_to_daytime when:day_time_traffic {
@@ -241,21 +252,20 @@ global skills:[network] {
 	}
 	
 	reflex update_car_population when: n_cars != n_cars_prev {
+		float t <- machine_time;
 		int delta_cars <- n_cars - n_cars_prev;
 		do update_vehicle_population("car", delta_cars);
-		ask first(progress_bar where (each.title = "Cars")) {
-			do update(float(n_cars));
-		}
 		n_cars_prev <- n_cars;
+		write delta_cars;
+		t2 <- t2 + machine_time - t;
 	}
 	
 	reflex update_motorbike_population when: n_motorbikes != n_motorbikes_prev {
+		float t <- machine_time;
 		int delta_motorbikes <- n_motorbikes - n_motorbikes_prev;
 		do update_vehicle_population("motorbike", delta_motorbikes);
-		ask first(progress_bar where (each.title = "Motorbikes")) {
-			do update(float(n_motorbikes));
-		}
 		n_motorbikes_prev <- n_motorbikes;
+		t3 <- t3 + machine_time -t;
 	}
 
 	reflex update_road_scenario{
@@ -448,8 +458,8 @@ global skills:[network] {
 
 
 experiment exp autorun: true {
-	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 500;
-	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 1000;
+	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 2000;
+	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 2000;
 	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2;
 	parameter "Display mode" var: display_mode <- 0 min: 0 max: 1;
 	parameter "Refreshing time plot" var: refreshing_rate_plot init: 2#mn min:1#mn max: 1#h;

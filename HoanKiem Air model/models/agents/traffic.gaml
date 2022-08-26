@@ -11,6 +11,7 @@ import "../global_vars.gaml"
 global {
 	float time_vehicles_move;
 	int nb_recompute_path;
+	float move1;
 }
 
 species road schedules: [] {
@@ -63,12 +64,16 @@ species vehicle skills: [moving] {
 	
 	
 	reflex choose_new_target when: target = nil and time >= time_to_go {
-		target <- road_network.vertices closest_to any(building);
+		//target <- road_network.vertices closest_to any(building);
+		target <- point(any(building));
+	
 	}
 	
 	reflex move when: target != nil {
 		float start <- machine_time;
 		do goto target: target on: road_network recompute_path: recompute_path;
+//		do move speed: speed bounds: shape;
+//		do compute_path graph: road_network target: target;
 		if location = target {
 			target <- nil;
 			time_to_go <- time; //+ rnd(15)#mn;
@@ -78,7 +83,12 @@ species vehicle skills: [moving] {
 		}
 		float end <- machine_time;
 		time_vehicles_move <- time_vehicles_move + (end - start);
+		
 	}
+	
+//	reflex check_time{
+//		write sample(time_vehicles_move);
+//	}
 	
 	aspect default {
 		switch type {

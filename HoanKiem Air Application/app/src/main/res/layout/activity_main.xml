@@ -27,46 +27,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:text="Map Senarios"
-            android:textColor="@color/primaryTextColor"
-            android:textSize="18sp" />
-
-        <info.hoang8f.android.segmented.SegmentedGroup xmlns:segmentedgroup="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/radio_group_map_senarios"
-            android:layout_width="match_parent"
-            android:layout_height="75dp"
-            android:layout_margin="10dp"
-            android:checkedButton="@id/radio_button_mapsenarios_oldmap"
-            android:orientation="horizontal"
-            segmentedgroup:sc_border_width="2dp"
-            segmentedgroup:sc_corner_radius="5dp"
-            segmentedgroup:sc_tint_color="@color/primaryColor">
-
-            <RadioButton
-                android:id="@+id/radio_button_mapsenarios_oldmap"
-                style="@style/RadioButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:onClick="onMapSenariosClicked"
-                android:text="Hoan Kiem District"
-                android:textSize="20sp" />
-
-            <RadioButton
-                android:id="@+id/radio_button_mapsenarios_expandmap"
-                style="@style/RadioButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:onClick="onMapSenariosClicked"
-                android:text="Expand Map"
-                android:textSize="20sp" />
-        </info.hoang8f.android.segmented.SegmentedGroup>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
             android:text="@string/label_num_cars"
             android:textColor="@color/primaryTextColor"
             android:textSize="18sp" />
@@ -79,8 +39,6 @@
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:orientation="horizontal">
-
-
 
             <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
                 android:id="@+id/seekBar_for_cars"

@@ -4,6 +4,9 @@
       <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/1e4e0c1ac706100e9fe1060abdfad93f/transformed/jetified-discrete-seekbar-1.0.1/jars/classes.jar!/" />
       <root url="file://$USER_HOME$/.gradle/caches/transforms-3/1e4e0c1ac706100e9fe1060abdfad93f/transformed/jetified-discrete-seekbar-1.0.1/res" />
       <root url="file://$USER_HOME$/.gradle/caches/transforms-3/1e4e0c1ac706100e9fe1060abdfad93f/transformed/jetified-discrete-seekbar-1.0.1/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/32af261a52afcdd6acd602c3649709de/transformed/jetified-discrete-seekbar-1.0.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/32af261a52afcdd6acd602c3649709de/transformed/jetified-discrete-seekbar-1.0.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/32af261a52afcdd6acd602c3649709de/transformed/jetified-discrete-seekbar-1.0.1/res" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.adw.library/discrete-seekbar/1.0.1/26ab76ae76d6d09fa36e0a49cc8d5b093a938005/discrete-seekbar-1.0.1-javadoc.jar!/" />

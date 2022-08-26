@@ -81,7 +81,7 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
 
         ip = getIntent().getStringExtra("ip");
         // Catch UI
-        mRadioGroupMapSenarios = findViewById(R.id.radio_group_map_senarios);
+//        mRadioGroupMapSenarios = findViewById(R.id.radio_group_map_senarios);
         mSeekBarNumCars = findViewById(R.id.seekBar_for_cars);
         mSeekBarNumMotorbikes = findViewById(R.id.seekBar_for_motobikes);
         mRadioGroupDisplayMode = findViewById(R.id.radio_group_display_mode);
@@ -256,22 +256,6 @@ public class MainActivity extends BaseActivity implements IMessageListener, OnMa
         }
     }
 
-    public void onMapSenariosClicked(View view) {
-        boolean checked = ((RadioButton) view).isChecked();
-
-        // Check which radio button was clicked
-        switch(view.getId()) {
-            case R.id.radio_button_mapsenarios_oldmap:
-                if (checked)
-                    TCP.getInstance(MainActivity.this).SendMessageTask("Expand_map", 0);
-
-                break;
-            case R.id.radio_button_mapsenarios_expandmap:
-                if (checked)
-                    TCP.getInstance(MainActivity.this).SendMessageTask("Expand_map", 1);
-                break;
-        }
-    }
 
     @Override
     public void messageReceived(String mess) {

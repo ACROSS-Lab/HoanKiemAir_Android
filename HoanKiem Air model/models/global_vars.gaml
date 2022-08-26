@@ -8,6 +8,7 @@
 model staticvars
 
 global {
+	
 	// Simulation parameters
 	int n_cars;
 	int n_motorbikes;
