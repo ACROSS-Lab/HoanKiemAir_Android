@@ -7,7 +7,7 @@
 
 model ExpebaselineRoads
 
-import "main (road cells).gaml"
+import "main(road_cells).gaml"
 
 global {
 

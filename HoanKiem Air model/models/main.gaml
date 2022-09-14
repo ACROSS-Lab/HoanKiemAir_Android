@@ -34,6 +34,18 @@ global skills:[network] {
 	
 	// Load shapefiles
 	string resources_dir <- "../includes/bigger_map/";
+	string resources_dir_new <- "../includes/new_map/";
+//	file new_boundary <- shape_file(resources_dir_new + "bound_2.shp");
+//	file amenity_polygon <- shape_file(resources_dir_new + "amenity_polygon.shp");
+//	file buildings <- shape_file(resources_dir_new + "building_polygon.shp");
+	file roads <- shape_file(resources_dir_new + "roads.shp");
+//	file landuses <- shape_file(resources_dir_new + "landuse_polygon.shp");
+//	file offices <- shape_file(resources_dir_new + "office_polygon.shp");
+	file buildings <- shape_file(resources_dir_new + "building.shp");
+	file landuse <- shape_file(resources_dir_new + "landuse.shp");
+	file office <- shape_file(resources_dir_new + "office.shp");
+	
+	//Old version 
 	shape_file map_boundary_rectangle_shape_file <- shape_file(resources_dir + "resize_rectangle.shp");	
 	shape_file roads_shape_file <- shape_file(resources_dir + "full_roads.shp");
 	shape_file dummy_roads_shape_file <- shape_file(resources_dir + "roads.shp");
@@ -42,22 +54,22 @@ global skills:[network] {
 	shape_file naturals_shape_file <- shape_file(resources_dir + "naturals.shp");
 	shape_file new_buildings_shape_file <- shape_file("../includes/Expand_map/buildings.shp");
 
-	geometry shape <- envelope(map_boundary_rectangle_shape_file);
+	geometry shape <- envelope(roads);
 	closed_roads_graphics crg;
 	list<road> open_roads;
 	list<pollutant_cell> active_cells;
 	
 	init {
 		
-	
+	/* 
 			
 		create closed_roads_graphics{
 			myself.crg <- self;
 		}
 		
 		
-		create boundary from: map_boundary_rectangle_shape_file;		
-		create road from: roads_shape_file {
+//		create boundary from: new_boundary;		
+		create road from: roads{
 			// Create a reverse road if the road is not oneway
 			if (!oneway) {
 				create road {
@@ -67,23 +79,28 @@ global skills:[network] {
 				}
 			}
 		}
-		
+//		
 		open_roads <- list(road);
 		road_network <- as_edge_graph(road) with_shortest_path_algorithm #NBAStar;
 		geometry road_geometry <- union(road accumulate (each.shape));
 		active_cells <- pollutant_cell overlapping road_geometry;
+		*/
+		create building from: buildings;
+		create building from: landuse;
+		create building from: office;
 		
-		// Additional visualization
 		
-		create decoration_building from: buildings_admin_shape_file;
-		create dummy_road from: dummy_roads_shape_file;
-		create natural from: naturals_shape_file;
-		create building from: new_buildings_shape_file{
+		ask building {
+			 if shape.area > 1000 {
+			 	do die;
+			 } 
+			ask (building inside(self)) - self{
+				do die;
+			}
 			p_cell <- pollutant_cell closest_to self;
+			
 		}
-		create building from: buildings_shape_file{
-			p_cell <- pollutant_cell closest_to self;
-		}	
+		save building to: "check4.shp" type: "shp";
 		
 //		create background with: [x::-1350, y::1000, width::1300, height::1100, alpha::0.6];
 //		create param_indicator with: [x::-1300, y::1100, size::20, name::"Time", value::"00:00:00"];
@@ -92,16 +109,16 @@ global skills:[network] {
 //		create param_indicator with: [x::-1300, y::1950, size::20, name::"Road scenario", value::"no blocked roads"];
 //		create param_indicator with: [x::-1300, y::2050, size::20, name::"Display mode", value::"traffic"];
 
-		create progress_bar    with: [x::3100, y::1200, width::350, height::100, max_val::500, title::"Cars",  left_label::"0", right_label::"Max"];
-		create progress_bar    with: [x::3100, y::1550, width::500, height::100, max_val::1000, title::"Motorbikes", left_label::"0", right_label::"Max"];
-		create param_indicator with: [x::3100, y::1850, size::22, name::"Road scenario", value::"No blocked roads", with_RT::true];
-		create param_indicator with: [x::3100, y::2050, size::22, name::"Display mode", value::"Traffic"];
+//		create progress_bar    with: [x::3100, y::1200, width::350, height::100, max_val::500, title::"Cars",  left_label::"0", right_label::"Max"];
+//		create progress_bar    with: [x::3100, y::1550, width::500, height::100, max_val::1000, title::"Motorbikes", left_label::"0", right_label::"Max"];
+//		create param_indicator with: [x::3100, y::1850, size::22, name::"Road scenario", value::"No blocked roads", with_RT::true];
+//		create param_indicator with: [x::3100, y::2050, size::22, name::"Display mode", value::"Traffic"];
 		
 //		create background with: [x::2450, y::1000, width::1250, height::1500, alpha::0.6];
 //		create line_graph with: [x::2500, y::1400, width::1200, height::1000, label::"Hourly AQI"];
-		create line_graph_aqi with: [x::2500, y::2300, width::1100, height::500, label::"Hourly AQI"];
+//		create line_graph_aqi with: [x::2500, y::2300, width::1100, height::500, label::"Hourly AQI"];
 //		create indicator_health_concern_level with: [x::2800, y::2803, width::800, height::200];
-		create param_indicator with: [x::2500, y::2803, size::30, name::"Time", value::"00:00:00", with_box::true, width::1100, height::200];		
+//		create param_indicator with: [x::2500, y::2803, size::30, name::"Time", value::"00:00:00", with_box::true, width::1100, height::200];		
 		
 	
 		write "port " + port;

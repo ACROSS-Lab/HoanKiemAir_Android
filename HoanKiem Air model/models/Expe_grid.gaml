@@ -7,7 +7,7 @@
 
 model ExpebaselineGrid
  
-import "main (grid cells).gaml" 
+//import "main(grid_cells).gaml" 
  
 global {
 	
