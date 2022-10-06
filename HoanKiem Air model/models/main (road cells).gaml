@@ -77,25 +77,23 @@ global {
 		}
 	}
 	
-	reflex update_car_population when: n_cars != n_cars_prev {
-		int delta_cars <- n_cars - n_cars_prev;
+	action update_car_population {
+		int delta_cars <- n_cars - length(vehicle count (each.type = "car"));
 		do update_vehicle_population("car", delta_cars);
 		ask first(progress_bar where (each.title = "Cars")) {
 			do update(float(n_cars));
 		}
-		n_cars_prev <- n_cars;
 	}
 	
-	reflex update_motorbike_population when: n_motorbikes != n_motorbikes_prev {
-		int delta_motorbikes <- n_motorbikes - n_motorbikes_prev;
+	action update_motorbike_population {
+		int delta_motorbikes <- n_motorbikes - - length(vehicle count (each.type = "motorbike"));
 		do update_vehicle_population("motorbike", delta_motorbikes);
 		ask first(progress_bar where (each.title = "Motorbikes")) {
 			do update(float(n_motorbikes));
 		}
-		n_motorbikes_prev <- n_motorbikes;
 	}
 
-	reflex update_road_scenario when: road_scenario != road_scenario_prev {
+	action update_road_scenario {
 		switch road_scenario {
 			match 0 {
 				open_roads <- list(road);
@@ -122,7 +120,6 @@ global {
 			recompute_path <- true;
 		}
 		road_network <- new_road_network;
-		road_scenario_prev <- road_scenario;
 	}
 	
 	reflex create_congestions {
@@ -204,9 +201,9 @@ global {
 }
 
 experiment exp {
-	parameter "Number of cars" var: n_cars <- 500 min: 0 max: 500;
-	parameter "Number of motorbikes" var: n_motorbikes <- 1000 min: 0 max: 1000;
-	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2;
+	parameter "Number of cars" var: n_cars <- 500 min: 0 max: 500 on_change: {ask simulation {do update_car_population;}};
+	parameter "Number of motorbikes" var: n_motorbikes <- 1000 min: 0 max: 1000 on_change: {ask simulation {do update_motorbike_population;}};
+	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2 on_change: {ask simulation {do update_road_scenario;}};
 	
 	output {
 		display main type: opengl background: #black {

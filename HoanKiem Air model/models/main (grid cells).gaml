@@ -13,6 +13,8 @@ import "agents/visualization.gaml"
 
 global skills:[network] {
 	
+	map<string, param_indicator> VISUAL_INDICATORS <- [];
+	
 	int port <- 3000;
 	string fct;
 	int val;
@@ -97,7 +99,7 @@ global skills:[network] {
 //		create indicator_health_concern_level with: [x::2800, y::2803, width::800, height::200];
 		create param_indicator with: [x::2500, y::2803, size::30, name::"Time", value::"00:00:00", with_box::true, width::1100, height::200];		
 		
-	
+		VISUAL_INDICATORS <- param_indicator as_map ((each.name)::each);
 		write "port " + port;
 		do connect protocol: "tcp_server" port: port raw:true;
 		
@@ -161,7 +163,7 @@ global skills:[network] {
 			}
 			match 'display_mode'{
 				val <- int(value);
-				display_mode <- val;
+				display_mode <- val = 0;
 				break;
 			}
 			match 'day_time_traffic'{
@@ -237,25 +239,23 @@ global skills:[network] {
 		n_motorbikes <- int(max_number_of_motorbikes * t_rate);
 	}
 	
-	reflex update_car_population when: n_cars != n_cars_prev {
-		int delta_cars <- n_cars - n_cars_prev;
+	action update_car_population  {
+		int delta_cars <- n_cars - length(vehicle count (each.type = "car"));
 		do update_vehicle_population("car", delta_cars);
 		ask first(progress_bar where (each.title = "Cars")) {
 			do update(float(n_cars));
 		}
-		n_cars_prev <- n_cars;
 	}
 	
-	reflex update_motorbike_population when: n_motorbikes != n_motorbikes_prev {
-		int delta_motorbikes <- n_motorbikes - n_motorbikes_prev;
+	action update_motorbike_population  {
+		int delta_motorbikes <- n_motorbikes - length(vehicle count (each.type = "motorbike"));
 		do update_vehicle_population("motorbike", delta_motorbikes);
 		ask first(progress_bar where (each.title = "Motorbikes")) {
 			do update(float(n_motorbikes));
 		}
-		n_motorbikes_prev <- n_motorbikes;
 	}
 
-	reflex update_road_scenario{
+	action update_road_scenario {
 		string param_val;
 		
 		ask crg{
@@ -284,28 +284,16 @@ global skills:[network] {
 		geometry road_geometry <- union(open_roads accumulate each.shape);
 		active_cells <- pollutant_cell overlapping road_geometry;
 		
-		ask first(param_indicator where (each.name = "Road scenario")) {
+		ask VISUAL_INDICATORS["Road scenario"] {
 			do update(param_val);
 		}
 	}
 	
-	reflex update_display_mode when: display_mode_prev != display_mode {
-		string param_val;
-		switch (display_mode) {
-			match 0 {
-				param_val <- "Traffic";
-				break;	
-			}
-			match 1 {
-				param_val <- "Pollution";
-				break;	
-			}
-		}
-		
-		ask first(param_indicator where (each.name = "Display mode")) {
+	action update_display_mode  {
+		string param_val <- display_mode ? "Traffic":"Pollution"; 
+		ask VISUAL_INDICATORS["Display mode"] {
 			do update(param_val);
 		}
-		display_mode_prev <- display_mode;
 	}
 	
 	reflex update_time {
@@ -316,7 +304,7 @@ global skills:[network] {
 		string mm <- ((m < 10) ? "0" : "") + string(m);
 		string ss <- ((s < 10) ? "0" : "") + string(s);
 		string t <- hh + ":" + mm + ":" + ss;
-		ask (param_indicator where (each.name = "Time")) {
+		ask VISUAL_INDICATORS["Time"] {
 			do update(t);
 		}
 	}
@@ -444,10 +432,10 @@ global skills:[network] {
 
 
 experiment exp autorun: true {
-	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 500;
-	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 1000;
-	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2;
-	parameter "Display mode" var: display_mode <- 0 min: 0 max: 1;
+	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 500 on_change: {ask simulation {do update_car_population;}};
+	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 1000 on_change: {ask simulation {do update_motorbike_population;}};
+	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2 on_change: {ask simulation {do update_road_scenario;}};
+	parameter "Display mode" var: display_mode <- true labels: ["Traffic","Pollution"] on_change: {ask simulation {do update_display_mode;}};
 	parameter "Refreshing time plot" var: refreshing_rate_plot init: 2#mn min:1#mn max: 1#h;
 	
 	output {

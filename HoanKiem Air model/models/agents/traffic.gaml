@@ -28,7 +28,7 @@ species road schedules: [] {
 	}
 
 	aspect default {
-		if(display_mode = 0)  {
+		if(display_mode)  {
 			if (closed) {
 				draw shape + 5 color: palet[CLOSED_ROAD_TRAFFIC];
 			} else {
@@ -103,7 +103,7 @@ species building schedules: [] {
 	}
 	
 	aspect default {
-		if (display_mode = 0) {
+		if (display_mode) {
 			draw shape color: palet[BUILDING_BASE] /*border: #darkgrey*/ /*depth: height * 10*/;
 		} else {
 			draw shape color: world.get_pollution_color(aqi) /*border: #darkgrey*/ depth: height * 10;

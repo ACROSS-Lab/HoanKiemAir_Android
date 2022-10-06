@@ -12,12 +12,7 @@ global {
 	int n_cars;
 	int n_motorbikes;
 	int road_scenario;
-	int display_mode;
-	// Save params' old values to detect value changes
-	int n_cars_prev;
-	int n_motorbikes_prev;
-	int road_scenario_prev;
-	int display_mode_prev;
+	bool display_mode;
 	
 	// Parameter of visualization to avoid z fighting
 	float Z_LVL1 <- 0.1;
