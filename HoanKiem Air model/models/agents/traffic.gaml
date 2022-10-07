@@ -188,7 +188,3 @@ species dummy_road schedules: [] {
 	
 }
 
-species closed_roads_graphics {
-		list<road> closed_roads;
-		geometry rect <- nil;
-	}

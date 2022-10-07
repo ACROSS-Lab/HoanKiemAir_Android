@@ -7,6 +7,7 @@
 
 model main
 
+import "Connection.gaml"
 import "agents/traffic.gaml"
 import "agents/pollution.gaml"
 import "agents/visualization.gaml" 
@@ -15,16 +16,7 @@ global skills:[network] {
 	
 	map<string, param_indicator> VISUAL_INDICATORS <- [];
 	
-	int port <- 3000;
-	string fct;
-	int val;
-	string param;
-	unknown client;
-	bool exist <- false;
-	message mess;
-	list<unknown> list_client;
-	string str_mess;
-	list<float>list_pollution;
+
 	// Benchmark execution time
 	bool benchmark <- false;
 	float time_absorb_pollutants;
@@ -37,7 +29,7 @@ global skills:[network] {
 	// Load shapefiles
 	string resources_dir <- "../includes/bigger_map/";
 	shape_file map_boundary_rectangle_shape_file <- shape_file(resources_dir + "resize_rectangle.shp");	
-	shape_file roads_shape_file <- shape_file(resources_dir + "full_roads.shp");
+	shape_file roads_shape_file <- shape_file(resources_dir + "roads.shp");
 	shape_file dummy_roads_shape_file <- shape_file(resources_dir + "small_dummy_roads.shp");
 	shape_file buildings_shape_file <- shape_file(resources_dir + "buildings.shp");
 	shape_file buildings_admin_shape_file <- shape_file(resources_dir + "buildings_admin.shp");
@@ -46,16 +38,11 @@ global skills:[network] {
 
 	
 	geometry shape <- envelope(buildings_shape_file);
-	closed_roads_graphics crg;
 	list<road> open_roads;
 	list<pollutant_cell> active_cells;
 	
 	init {
-		create closed_roads_graphics{
-			myself.crg <- self;
-		}
-		
-		
+
 		create boundary from: map_boundary_rectangle_shape_file;		
 		create road from: roads_shape_file {
 			// Create a reverse road if the road is not oneway
@@ -100,128 +87,15 @@ global skills:[network] {
 		create param_indicator with: [x::2500, y::2803, size::30, name::"Time", value::"00:00:00", with_box::true, width::1100, height::200];		
 		
 		VISUAL_INDICATORS <- param_indicator as_map ((each.name)::each);
-		write "port " + port;
-		do connect protocol: "tcp_server" port: port raw:true;
 		
-		
-		
+		create Server{
+			ask line_graph_aqi {
+				list_pollution <- val_list;
+			}
+		}	
 	}
 	
-	
-	reflex receive when: has_more_message() {
-		loop while: has_more_message() {
-			
-			mess <- fetch_message();
-			str_mess <- string(mess.contents);
-			client <- mess.sender;
-		
-			if(client in list_client){
-				exist <- true;
-			}else{
-				list_client << client;
-				
-			}
-			
-			do pre_process_message(str_mess);
-	
-		}
-				
-	
-	}
-	
-	action pre_process_message(string mess1){
-		if(mess1 = "Hello Server"){
-			write mess1;
-		}else{
-			
-			fct <- (mess1 split_with ';')[0];
-			let idx <- fct index_of '{';
-			fct <- copy_between(fct, idx + 1 , length(fct));
-		
-			param <- (mess1 split_with ';')[1];
-			idx <- param index_of '}';
-			param <- copy_between(param, 0 , idx);
-			write 'The parameter:' + fct + ' , value:' + param;
-		
-			do handleMess(fct,param);	
-		}
-		
-				
-	}
-	
-	action handleMess(string parameter, string value) {
-		switch parameter {
-			match 'n_cars'{
-				val <- int(value);
-				n_cars <- val;
-				break;
-			}
-			match 'n_motorbikes'{
-				val <- int(value);
-				n_motorbikes <- val;
-				break;
-			}
-			match 'display_mode'{
-				val <- int(value);
-				display_mode <- val = 0;
-				break;
-			}
-			match 'day_time_traffic'{
-				val <- int(value);
-				if(val = 1){
-						day_time_traffic <- true;
-						refreshing_rate_plot <- 1#h;
-						starting_date_string <- "05 00 00";
-						step <- 5#mn;		
-				}else{
-						day_time_traffic <- false;
-						refreshing_rate_plot <- 1#mn;
-						starting_date_string <- "00 00 00";
-						step <- 16#s;
-						n_cars <- 0;
-						n_motorbikes <- 0;
-				}
-				break;
-			}
-			match 'Block_of_polygon'{
-				let list_coord <- param replace("lat/lng:", "") 
-									replace("[", "") 
-									replace("]", "") 
-									replace(")", "") 
-									replace(" ", "");
-				list<point> list_points;
-				loop coord over: list_coord split_with "(" {
-					let list_val <- coord split_with ",";
-					let p <- {float(list_val[1]), float(list_val[0])};
-					list_points <- list_points + p;
-				}
-					
-				ask crg {
-					rect <- to_GAMA_CRS(polygon(list_points), "EPSG:4326");
-					write list_points;						
-				}
-				break;
-				
-			}
-		}
-		
-	}
-	
-	
-	reflex list_pollution when:(cycle mod 5 = 0){
-		
-		ask line_graph_aqi {
-			list_pollution <- val_list;
-		}
-		
-		ask world{
-			do send to: list_client contents: list_pollution;
-		}
-		
-	
-	}
-	
-	
+
 	action update_vehicle_population(string type, int delta) {
 		list<vehicle> vehicles <- vehicle where (each.type = type);
 		if (delta < 0) {
@@ -239,7 +113,7 @@ global skills:[network] {
 		n_motorbikes <- int(max_number_of_motorbikes * t_rate);
 	}
 	
-	action update_car_population  {
+	reflex update_car_population  {
 		int delta_cars <- n_cars - length(vehicle count (each.type = "car"));
 		do update_vehicle_population("car", delta_cars);
 		ask first(progress_bar where (each.title = "Cars")) {
@@ -247,7 +121,7 @@ global skills:[network] {
 		}
 	}
 	
-	action update_motorbike_population  {
+	reflex update_motorbike_population{
 		int delta_motorbikes <- n_motorbikes - length(vehicle count (each.type = "motorbike"));
 		do update_vehicle_population("motorbike", delta_motorbikes);
 		ask first(progress_bar where (each.title = "Motorbikes")) {
@@ -255,14 +129,13 @@ global skills:[network] {
 		}
 	}
 
-	action update_road_scenario {
+	reflex update_road_scenario {
 		string param_val;
+		list<road>closed_roads;
 		
-		ask crg{
-			closed_roads <- road overlapping rect;
-		}
-		
-		open_roads <- road - crg.closed_roads;
+		closed_roads <- closed_roads + (road overlapping rect) ;
+		closed_roads <- closed_roads sort_by int(each);
+		open_roads <- road - closed_roads;
 		
 		// Recreate road network
 		map<road, float> road_weights <- open_roads as_map (each::each.shape.perimeter); 
@@ -276,7 +149,7 @@ global skills:[network] {
 		ask open_roads {
 			closed <- false;
 		}
-		ask crg.closed_roads {
+		ask closed_roads {
 			closed <- true;
 		}
 
@@ -289,7 +162,7 @@ global skills:[network] {
 		}
 	}
 	
-	action update_display_mode  {
+	reflex update_display_mode  {
 		string param_val <- display_mode ? "Traffic":"Pollution"; 
 		ask VISUAL_INDICATORS["Display mode"] {
 			do update(param_val);
@@ -432,10 +305,10 @@ global skills:[network] {
 
 
 experiment exp autorun: true {
-	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 500 on_change: {ask simulation {do update_car_population;}};
-	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 1000 on_change: {ask simulation {do update_motorbike_population;}};
-	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2 on_change: {ask simulation {do update_road_scenario;}};
-	parameter "Display mode" var: display_mode <- true labels: ["Traffic","Pollution"] on_change: {ask simulation {do update_display_mode;}};
+	parameter "Number of cars" var: n_cars <- 0 min: 0 max: 500 ;
+	parameter "Number of motorbikes" var: n_motorbikes <- 0 min: 0 max: 1000;
+//	parameter "Close roads" var: road_scenario <- 0 min: 0 max: 2 on_change: {ask simulation {do update_road_scenario;}};
+	parameter "Display mode" var: display_mode <- true labels: ["Traffic","Pollution"];
 	parameter "Refreshing time plot" var: refreshing_rate_plot init: 2#mn min:1#mn max: 1#h;
 	
 	output {
@@ -459,7 +332,6 @@ experiment exp autorun: true {
 	   //	species line_graph;
 			species line_graph_aqi;
 			species indicator_health_concern_level;
-			species closed_roads_graphics;
 		}
 	}
 	
